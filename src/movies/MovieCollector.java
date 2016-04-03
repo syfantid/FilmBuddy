@@ -162,14 +162,14 @@ public class MovieCollector {
      * @param page The film's Wikipedia page text
      * @return A list of all the related categories
      */
-    private static ArrayList<String> getCategories(String page) {
-        ArrayList<String> categories = new ArrayList<>();
+    private static String getCategories(String page) {
+        StringBuilder categories = new StringBuilder();
         Matcher m = Pattern.compile("\\[\\[Category:\\s*([\\w\\d\\s\\u00E0-\\u00FC-]*)\\]\\]*").matcher(page);
         while(m.find()) {
-            categories.add(m.group(1));
-
+            categories.append(m.group(1)).append(", ");
         }
-        return categories;
+        categories.deleteCharAt(categories.length()-2);
+        return categories.toString();
     }
 
     public static void main(String[] args) throws Throwable
@@ -177,7 +177,6 @@ public class MovieCollector {
         Wiki wiki = new Wiki("syfantid", "sofia24041994", "en.wikipedia.org"); // Login to Wikipedia
 
         // THIS IS A TESTING PART
-
         /*String category = "Category:2000 films";
         String year = getYear(category); // 1. The year for all the movies in the specific category
         ArrayList<String> films = wiki.getCategoryMembers(category,NS.MAIN); // Get all the articles in this category
@@ -207,10 +206,7 @@ public class MovieCollector {
             }
             System.out.println("EXTENDED PLOT");
             System.out.println(extendedPlotTest);
-
         }*/
-
-        // TODO: 3/31/2016 Get all the categories
 
         int yearNumber = 1900;
         while(yearNumber <= 2016) {
@@ -225,39 +221,20 @@ public class MovieCollector {
                 } else {
                     String pageFormatted = wiki.getPageText(title); // The text of the article formatted
                     String page = pageFormatted.replaceAll("\\s+", " "); // Remove any extra whitespaces
-                    String extendedPlot = getExtendedPlot(page); // The extended plot of the film
+                    String extendedPlot = getExtendedPlot(page); // The extended plot of the film - REQUIRED FIELD
                     if(!extendedPlot.isEmpty()) { // Exclude films with empty Wikipedia pages
-                        // Get all the extra information needed to present the film (optional information)
-                        ArrayList<String> categories = getCategories(page);
+                        // Get all the extra information needed to present the film; OPTIONAL FIELDS
+                        String categories = getCategories(page);
                         String synopsis = getSynopsis(page);
                         String iconURL = getIconURL(page, wiki);
                         String cast = getStars(page);
                         String director = getDirector(page);
                         String imdbURL = getIMDbLink(page);
-                        //String sematicsPlot = MovieSemantics.getSemanticsPlot(extendedPlot);
-                        System.out.println("Page for film: " + title);
-                        System.out.println(page);
-                        System.out.println("STARS");
-                        System.out.println(cast);
-                        System.out.println("DIRECTOR");
-                        System.out.println(director);
-                        System.out.println("SYNOPSIS");
-                        System.out.println(synopsis);
-                        System.out.println("LINK");
-                        System.out.println(imdbURL);
-                        //System.out.println("IMAGE");
-                        //String URL = getIconURL(pageTest,wiki);
-                        System.out.println("CATEGORIES");
-                        for(String s : categories) {
-                            System.out.print(s + ", ");
-                        }
-                        System.out.println();
-                        System.out.println("EXTENDED PLOT");
-                        System.out.println(extendedPlot);
-                        System.out.println();
+                        Movie m = new Movie(title, yearNumber, categories, synopsis, iconURL, cast, director,
+                                imdbURL, extendedPlot); // Create Movie object
+                        MovieStorager.InsertMovietoDB(m); // Insert movie to DB
                     }
                 }
-                System.out.println("***********************************************************************************");
             }
             yearNumber++; // Parse next year's movies
         }
