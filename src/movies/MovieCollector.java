@@ -55,7 +55,8 @@ public class MovieCollector {
                         index2);
             }
         }
-        return plot.replaceAll("[\\[\\]]","");
+        return plot.replaceAll("[\\[\\]]","").
+                replaceAll("<ref>([\\w\\s\\u00E0-\\u00FC\\[\\]{}()|:?\\-=%&;'\"/.,]*)</ref>","");
     }
 
     /**
@@ -175,19 +176,21 @@ public class MovieCollector {
     public static void main(String[] args) throws Throwable
     {
         Wiki wiki = new Wiki("syfantid", "sofia24041994", "en.wikipedia.org"); // Login to Wikipedia
+        //Wiki wiki = WikiGen.wg.get("FastilyClone", "en.wikipedia.org");
+        //System.out.println(wiki.getImageInfo("File:ShadowHoursDVDCoverAmazon.jpg"));
 
         // THIS IS A TESTING PART
-        /*String category = "Category:2000 films";
+        /*String category = "Category:1902 films";
         String year = getYear(category); // 1. The year for all the movies in the specific category
         ArrayList<String> films = wiki.getCategoryMembers(category,NS.MAIN); // Get all the articles in this category
 
-        String titleTest = films.get(10); // Film title
+        String titleTest = films.get(films.indexOf("A Trip to the Moon")); // Film title
         String pageTestFormatted = wiki.getPageText(titleTest); // The text of the article
         String pageTest = pageTestFormatted.replaceAll("\\s+", " ");
         String extendedPlotTest = getExtendedPlot(pageTest); // The extended plot of the film
         if(!extendedPlotTest.isEmpty()) {
             System.out.println("Page for film: " + titleTest);
-            System.out.println(pageTestFormatted);
+            //System.out.println(pageTestFormatted);
             System.out.println(pageTest);
             System.out.println("STARS");
             System.out.println(getStars(pageTest));
@@ -200,10 +203,8 @@ public class MovieCollector {
             System.out.println("IMAGE");
             //String URL = getIconURL(pageTest,wiki);
             System.out.println("CATEGORIES");
-            ArrayList<String> categories = getCategories(pageTest);
-            for(String s : categories) {
-                System.out.print(s + ", ");
-            }
+            String categories = getCategories(pageTest);
+            System.out.println(categories);
             System.out.println("EXTENDED PLOT");
             System.out.println(extendedPlotTest);
         }*/

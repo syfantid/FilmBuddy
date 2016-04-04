@@ -1,25 +1,51 @@
 package movies;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Properties;
 
 /**
+ * Class to handle the MySQL Database functionality
  * Created by Sofia on 4/3/2016.
  */
 public class MovieStorager {
-    private static Connection c;
+    private static Connection conn;
+    private static String myDriver;
+    private static String myUrl;
+    private static  String user;
+    private static String pass;
 
+    /**
+     * Initializes the properties based on properties file given in input directory
+     */
+    static {
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream(new File("input\\credentials.properties")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        myDriver = properties.getProperty("driver");
+        myUrl = properties.getProperty("url");
+        user = properties.getProperty("username");
+        pass = properties.getProperty("password");
+    }
+
+    /**
+     * Inserts a movie into the Database
+     * @param m The movie to be inserted
+     * @throws SQLException In case a connection is not open or there is a problem with the inserted values
+     */
     public static void InsertMovietoDB(Movie m) throws SQLException {
         try {
-            System.out.println("****************************************************************");
-            // Create a mysql database connection
-            String myDriver = "com.mysql.jdbc.Driver";
-            String myUrl = "jdbc:mysql://localhost:3306/movies";
             Class.forName(myDriver);
-            // TODO: 4/3/2016 Find alternative to hard-coded password 
-            Connection conn = DriverManager.getConnection(myUrl, "root", "");
+            conn = DriverManager.getConnection(myUrl, user, pass);
 
             // The mysql insert statement
             String query = " insert into all_movies (title, year, categories, synopsis, icon_url, cast, " +
@@ -42,7 +68,7 @@ public class MovieStorager {
 
             conn.close();
         } catch (Exception e) {
-            System.err.println("Got an exception!");
+            System.err.println("***************************Got an exception!***************************");
             System.err.println(e.getMessage());
         }
     }
