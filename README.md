@@ -6,3 +6,4 @@ Project for my thesis; Social Recommender System
 
 ### Dependencies
 jwiki-v1.1
+mysql-connector-java-5.0.8-bin2
