@@ -4,8 +4,12 @@ import jwiki.core.NS;
 import jwiki.core.Wiki;
 import jwiki.dwrap.ImageInfo;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +18,8 @@ import java.util.regex.Pattern;
  * Created by Sofia on 3/31/2016.
  */
 public class MovieCollector {
+    private static String username;
+    private static String password;
 
     /**
      * Gets the extended plot of a Wikipedia film page
@@ -109,7 +115,7 @@ public class MovieCollector {
     private static String getSynopsis(String page) {
         String synopsis = "";
         // From the end of Info-box to the start of a new section/heading
-        page = page.replaceAll("<ref>([\\w\\s\\u00E0-\\u00FC\\[\\]{}()|:?\\-=%&;'\"/.,]*)</ref>",""); // Remove all links
+        page = page.replaceAll("<ref>([\\w\\s\\u00E0-\\u00FC\\[\\]{}()|:?\\-=%&;‘’'\"/.,]*)</ref>",""); // Remove all links
         Matcher m = Pattern.compile("}} ([\\w\\d\\s\\u00E0-\\u00FC.,\\[\\]\\/\\|#!%<>?’&;:{}\\-_`'\"~()]*?) ={2,}")
                 .matcher(page);
         if(m.find()) {
@@ -147,12 +153,19 @@ public class MovieCollector {
         // TODO: 4/3/2016 ImageInfo Class bug probably
         String imageName;
         String iconURL = "";
-        Matcher m = Pattern.compile("(?i)image\\s*=\\s*([\\w\\d\\s.]*)").matcher(page); // Get the image file name
+        Matcher m = Pattern.compile("(?i)image\\s*=\\s*([\\w\\d\\s'.]*)").matcher(page); // Get the image file name
         if(m.find()) {
-            imageName = m.group(1).replaceAll("\\s+","");
-            ImageInfo image = wiki.getImageInfo(imageName);
-            if(image != null) {
-                iconURL = image.url;
+            imageName = "File:" + m.group(1).trim();
+            if(!imageName.isEmpty()) {
+                ArrayList<ImageInfo> image = wiki.getImageInfo(imageName);
+                if(image != null) {
+                    for (ImageInfo i : image) {
+                        iconURL = i.url;
+                        if(!iconURL.isEmpty()) {
+                            break;
+                        }
+                    }
+                }
             }
         }
         return iconURL;
@@ -169,22 +182,33 @@ public class MovieCollector {
         while(m.find()) {
             categories.append(m.group(1)).append(", ");
         }
-        categories.deleteCharAt(categories.length()-2);
+        try {
+            categories.deleteCharAt(categories.length()-2);
+        } catch(StringIndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
         return categories.toString();
     }
 
     public static void main(String[] args) throws Throwable
     {
-        Wiki wiki = new Wiki("syfantid", "sofia24041994", "en.wikipedia.org"); // Login to Wikipedia
-        //Wiki wiki = WikiGen.wg.get("FastilyClone", "en.wikipedia.org");
-        //System.out.println(wiki.getImageInfo("File:ShadowHoursDVDCoverAmazon.jpg"));
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream(new File("input\\credentialsWiki.properties")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        username = properties.getProperty("username");
+        password = properties.getProperty("password");
+        Wiki wiki = new Wiki(username, password, "en.wikipedia.org"); // Login to Wikipedia
 
         // THIS IS A TESTING PART
-        /*String category = "Category:1902 films";
+        /*String category = "Category:2015 films";
         String year = getYear(category); // 1. The year for all the movies in the specific category
         ArrayList<String> films = wiki.getCategoryMembers(category,NS.MAIN); // Get all the articles in this category
 
-        String titleTest = films.get(films.indexOf("A Trip to the Moon")); // Film title
+        String titleTest = films.get(250); // Film title
         String pageTestFormatted = wiki.getPageText(titleTest); // The text of the article
         String pageTest = pageTestFormatted.replaceAll("\\s+", " ");
         String extendedPlotTest = getExtendedPlot(pageTest); // The extended plot of the film
@@ -209,7 +233,7 @@ public class MovieCollector {
             System.out.println(extendedPlotTest);
         }*/
 
-        int yearNumber = 1900;
+        int yearNumber = 1901;
         while(yearNumber <= 2016) {
             String category = "Category:" + yearNumber + " films";
             ArrayList<String> films = wiki.getCategoryMembers(category,NS.MAIN); // Get all the articles in this category

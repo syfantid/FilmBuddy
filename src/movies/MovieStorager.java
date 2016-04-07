@@ -1,13 +1,9 @@
 package movies;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Properties;
+import database.*;
 
 /**
  * Class to handle the MySQL Database functionality
@@ -15,37 +11,15 @@ import java.util.Properties;
  */
 public class MovieStorager {
     private static Connection conn;
-    private static String myDriver;
-    private static String myUrl;
-    private static  String user;
-    private static String pass;
-
-    /**
-     * Initializes the properties based on properties file given in input directory
-     */
-    static {
-        Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream(new File("input\\credentials.properties")));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        myDriver = properties.getProperty("driver");
-        myUrl = properties.getProperty("url");
-        user = properties.getProperty("username");
-        pass = properties.getProperty("password");
-    }
-
     /**
      * Inserts a movie into the Database
      * @param m The movie to be inserted
      * @throws SQLException In case a connection is not open or there is a problem with the inserted values
      */
     public static void InsertMovietoDB(Movie m) throws SQLException {
-        try {
-            Class.forName(myDriver);
-            conn = DriverManager.getConnection(myUrl, user, pass);
+        Database db = new Database();
+        if (db.connect()) {
+            conn = db.getConnection();
 
             // The mysql insert statement
             String query = " insert into all_movies (title, year, categories, synopsis, icon_url, cast, " +
@@ -64,12 +38,13 @@ public class MovieStorager {
             preparedStmt.setString(9, m.getExtendedPlot());
 
             // Execute the PreparedStatement
-            preparedStmt.execute();
+            try {
+                preparedStmt.execute();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             conn.close();
-        } catch (Exception e) {
-            System.err.println("***************************Got an exception!***************************");
-            System.err.println(e.getMessage());
         }
     }
 }
