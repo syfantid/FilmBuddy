@@ -1,8 +1,9 @@
-package movies;
+package movies_component;
 
 import jwiki.core.NS;
 import jwiki.core.Wiki;
 import jwiki.dwrap.ImageInfo;
+import models.Movie;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -190,6 +191,11 @@ public class MovieCollector {
         return categories.toString();
     }
 
+    /**
+     * Main function to collect all movies from Wikipedia and store them in a MySQL Database
+     * @param args No arguments needed
+     * @throws Throwable In case insertion to MySQL Database fails
+     */
     public static void main(String[] args) throws Throwable
     {
         Properties properties = new Properties();
@@ -202,36 +208,7 @@ public class MovieCollector {
         username = properties.getProperty("username");
         password = properties.getProperty("password");
         Wiki wiki = new Wiki(username, password, "en.wikipedia.org"); // Login to Wikipedia
-
-        // THIS IS A TESTING PART
-        /*String category = "Category:2015 films";
-        String year = getYear(category); // 1. The year for all the movies in the specific category
-        ArrayList<String> films = wiki.getCategoryMembers(category,NS.MAIN); // Get all the articles in this category
-
-        String titleTest = films.get(250); // Film title
-        String pageTestFormatted = wiki.getPageText(titleTest); // The text of the article
-        String pageTest = pageTestFormatted.replaceAll("\\s+", " ");
-        String extendedPlotTest = getExtendedPlot(pageTest); // The extended plot of the film
-        if(!extendedPlotTest.isEmpty()) {
-            System.out.println("Page for film: " + titleTest);
-            //System.out.println(pageTestFormatted);
-            System.out.println(pageTest);
-            System.out.println("STARS");
-            System.out.println(getStars(pageTest));
-            System.out.println("DIRECTOR");
-            System.out.println(getDirector(pageTest));
-            System.out.println("SYNOPSIS");
-            System.out.println(getSynopsis(pageTest));
-            System.out.println("LINK");
-            System.out.println(getIMDbLink(pageTest));
-            System.out.println("IMAGE");
-            //String URL = getIconURL(pageTest,wiki);
-            System.out.println("CATEGORIES");
-            String categories = getCategories(pageTest);
-            System.out.println(categories);
-            System.out.println("EXTENDED PLOT");
-            System.out.println(extendedPlotTest);
-        }*/
+        MovieStorager storagerSQL = new MovieStorager();
 
         int yearNumber = 1901;
         while(yearNumber <= 2016) {
@@ -257,11 +234,14 @@ public class MovieCollector {
                         String imdbURL = getIMDbLink(page);
                         Movie m = new Movie(title, yearNumber, categories, synopsis, iconURL, cast, director,
                                 imdbURL, extendedPlot); // Create Movie object
-                        MovieStorager.InsertMovietoDB(m); // Insert movie to DB
+                        storagerSQL.InsertMovietoDB(m); // Insert movie to DB
                     }
                 }
             }
             yearNumber++; // Parse next year's movies
+        }
+        if(!storagerSQL.closeConnection()) {
+            System.out.println("Failed to close connection!");
         }
     }
 }

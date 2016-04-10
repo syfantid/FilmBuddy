@@ -1,4 +1,4 @@
-package database;
+package models;
 
 import java.io.File;
 import java.io.FileInputStream;

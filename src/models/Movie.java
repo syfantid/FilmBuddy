@@ -1,4 +1,4 @@
-package movies;
+package models;
 
 /**
  * Class to represent a Movie object
