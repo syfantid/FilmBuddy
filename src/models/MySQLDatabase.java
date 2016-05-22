@@ -12,7 +12,7 @@ import java.util.Properties;
  * Class to represent a Database object
  * Created by Sofia on 4/7/2016.
  */
-public class Database {
+public class MySQLDatabase {
     private static String myDriver;
     private static String myUrl;
     private static  String user;

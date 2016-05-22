@@ -13,7 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Class to collect metadata about the movies from OMDb, store them in Mongo DB and handle the Mongo DB
+ * Class to collect metadata about the movies from OMDb, store them in MongoDB and handle the MongoDB
  * Created by Sofia on 4/7/2016.
  */
 public class MovieMetadataCollector {

@@ -17,7 +17,7 @@ public class MovieStorager {
      * Constructor of the class; initializes the connection to the Database
      */
     public MovieStorager() {
-        Database db = new Database();
+        MySQLDatabase db = new MySQLDatabase();
         if (db.connect()) {
             conn = db.getConnection();
         }

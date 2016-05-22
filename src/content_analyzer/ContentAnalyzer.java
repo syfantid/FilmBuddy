@@ -1,10 +1,15 @@
 package content_analyzer;
 
 import movies_component.MovieStorager;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 /**
  * Created by Sofia on 4/8/2016.
  */
@@ -35,19 +40,27 @@ public class ContentAnalyzer {
      * @throws SQLException In case an SQL query fails
      */
     private static void insertSemantics() throws SQLException {
-        ArrayList<String> ids = getMovieIDs(); // The IDs of all the movies
-        for(String id : ids) { // for each film
+        ArrayList<String> ids = getMovieIDs(); // Get the IDs of all the movies
+        try {
+            parseHTMLPage("mafia");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+       /* for(String id : ids) { // for each film
             // Fetch the extended plot
             String query = "SELECT `extended_plot` FROM `all_movies` WHERE `id`=" + id;
             ResultSet rs = storagerSQL.selectQuery(query);
             // "Clear" the extended plot
-            String extendedPlot = rs.getString("extended_plot");
-            //extendedPlot = clearText(extendedPlot);
+            rs.next();
+            String extendedPlot = rs.getString(1);
+            extendedPlot = clearText(extendedPlot);
+            System.out.println(extendedPlot);
+            System.out.println();
             // Find the semantics plot
-            String semantics = findSemantics(extendedPlot);
+            //String semantics = findSemantics(extendedPlot);
             // Insert the semantics plot in the Database
-            storagerSQL.insertSemanticPlot(id, semantics);
-        }
+            //storagerSQL.insertSemanticPlot(id, semantics);
+        }*/
     }
 
     /**
@@ -60,14 +73,20 @@ public class ContentAnalyzer {
         return "";
     }
 
+    private static void parseHTMLPage(String word) throws IOException {
+        String html = "http://semantic-link.com/#/" + word;
+        Document doc = Jsoup.connect(html).get();
+        //Elements newsHeadlines = doc.select("#mp-itn b a");
+        System.out.println(doc);
+    }
+
     /**
      * "Clears" text from unnecessary punctuation/stop-words/nouns etc.
      * @param text The text to be "cleared"
      * @return The "cleared" text
      */
     private static String clearText(String text) {
-        // TODO: 4/10/2016 Perform the text cleaning
-        return "";
+        return Processor.preprocess(text);
     }
 
     /**
