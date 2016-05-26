@@ -1,7 +1,7 @@
 package movies_component;
 
 import com.google.gson.Gson;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.omertron.omdbapi.OMDBException;
@@ -25,7 +25,7 @@ public class MovieMetadataCollector {
     private String _coll_name_movies;
 
     /**
-     * Connects to the given server:port to the database fixthefixing
+     * Connects to the given server:port to the database movies_component
      * @param host The host name of the server
      * @param port The port of the server
      */
@@ -63,6 +63,13 @@ public class MovieMetadataCollector {
         // TODO: 4/7/2016 Throws exception; Check with Github developer
         OmdbVideoFull result = omdb.getInfo(new OmdbBuilder().setImdbId(imdbID).setPlotLong().build());
         return gson.toJson(result);
+    }
+
+    public void deleteMovie(String id) {
+        MongoCollection<Document> coll = _db.getCollection(_coll_name_movies);
+
+        Document docToDelete = new Document("movie_id", id);
+        coll.findOneAndDelete(docToDelete);
     }
 
     /**

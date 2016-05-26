@@ -88,11 +88,35 @@ public class MovieStorager {
      * @param semantics The semantics plot
      */
     public void insertSemanticPlot(String id, String semantics) {
-        String query = " UPDATE `all_movies` SET `semantics_plot`= ? WHERE `id`= ? ";
+        insertPlot(id,semantics,"semantics");
+    }
+
+    /**
+     * Inserts the film's parsed_plot column value
+     * @param id The ID of the film
+     * @param parsed The parsed plot
+     */
+    public void insertParsedPlot(String id, String parsed) {
+        insertPlot(id,parsed,"parsed");
+    }
+
+    /**
+     * Inserts the film's plot column value
+     * @param id The ID of the film
+     * @param plot The plot
+     * @param type The type of the plot; "parsed" for parsed_plot and "semantics" for semantics_plot
+     */
+    public void insertPlot(String id, String plot, String type) {
+        String query;
+        if(type.equals("parsed")) {
+            query = " UPDATE `all_movies` SET `parsed_plot`= ? WHERE `id`= ? ";
+        } else {
+            query = " UPDATE `all_movies` SET `semantics_plot`= ? WHERE `id`= ? ";
+        }
         PreparedStatement preparedStmtAux;
         try {
             preparedStmtAux = conn.prepareStatement(query);
-            preparedStmtAux.setString(1, semantics);
+            preparedStmtAux.setString(1, plot);
             preparedStmtAux.setString(2, id);
             preparedStmtAux.executeUpdate();
         } catch (SQLException e) {

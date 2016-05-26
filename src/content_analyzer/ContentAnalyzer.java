@@ -1,20 +1,23 @@
 package content_analyzer;
 
+import movies_component.MovieMetadataCollector;
 import movies_component.MovieStorager;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
-import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
 /**
+ * Class to analyze and populate the dataset with parsed and semantics plots
  * Created by Sofia on 4/8/2016.
  */
 public class ContentAnalyzer {
     private static MovieStorager storagerSQL;
+    private static MovieMetadataCollector storagerMongo;
+
+    static {
+        storagerSQL = new MovieStorager();
+        storagerMongo = new MovieMetadataCollector("localhost",27017);
+    }
 
     /**
      * Gets all the movie IDs from the Database
@@ -39,45 +42,32 @@ public class ContentAnalyzer {
      * Populates the semantics_plot column of the Database
      * @throws SQLException In case an SQL query fails
      */
-    private static void insertSemantics() throws SQLException {
+    private static void cleanAndInsertSemantics() throws SQLException {
         ArrayList<String> ids = getMovieIDs(); // Get the IDs of all the movies
-        try {
-            parseHTMLPage("mafia");
-        } catch (IOException e) {
-            e.printStackTrace();
+
+       for(String id : ids) { // for each film
+           System.out.println("Working on movie with ID: " + id);
+           // Fetch the extended plot
+           String query = "SELECT `extended_plot` FROM `all_movies` WHERE `id`=" + id;
+           ResultSet rs = storagerSQL.selectQuery(query);
+           // "Clear" the extended plot
+           rs.next();
+           String extendedPlot = rs.getString(1);
+           extendedPlot = clearText(extendedPlot);
+           if(extendedPlot.isEmpty()) { // There is no extended plot; Handles problem
+               // Delete movies with no extended plot
+               storagerMongo.deleteMovie(id);
+               storagerSQL.deleteMovie(id);
+           // Insert parsed plot into MySQL DB
+           } else {
+               storagerSQL.insertParsedPlot(id,extendedPlot);
+               // Find the semantics plot
+               String semantics = SemanticsExtractor.findSemantics(extendedPlot);
+               // Insert the semantics plot in the Database
+               storagerSQL.insertSemanticPlot(id, semantics);
+               System.out.println("\nID: " + id + " Extended Plot: " + extendedPlot + "\nSemantics plot: " + semantics);
+           }
         }
-       /* for(String id : ids) { // for each film
-            // Fetch the extended plot
-            String query = "SELECT `extended_plot` FROM `all_movies` WHERE `id`=" + id;
-            ResultSet rs = storagerSQL.selectQuery(query);
-            // "Clear" the extended plot
-            rs.next();
-            String extendedPlot = rs.getString(1);
-            extendedPlot = clearText(extendedPlot);
-            System.out.println(extendedPlot);
-            System.out.println();
-            // Find the semantics plot
-            //String semantics = findSemantics(extendedPlot);
-            // Insert the semantics plot in the Database
-            //storagerSQL.insertSemanticPlot(id, semantics);
-        }*/
-    }
-
-    /**
-     * Finds all the semantically related words
-     * @param extendedPlot The extended plot of the film
-     * @return The semantics plot of the film
-     */
-    private static String findSemantics(String extendedPlot) {
-        // TODO: 4/10/2016 Find the semantically related words
-        return "";
-    }
-
-    private static void parseHTMLPage(String word) throws IOException {
-        String html = "http://semantic-link.com/#/" + word;
-        Document doc = Jsoup.connect(html).get();
-        //Elements newsHeadlines = doc.select("#mp-itn b a");
-        System.out.println(doc);
     }
 
     /**
@@ -91,12 +81,11 @@ public class ContentAnalyzer {
 
     /**
      * Main funtion that performs the content analysis
-     * @param args
+     * @param args None needed
      * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
-        storagerSQL = new MovieStorager();
-        insertSemantics();
+        cleanAndInsertSemantics();
         if(!storagerSQL.closeConnection()) {
             System.out.println("Failed to close the connection!");
         }

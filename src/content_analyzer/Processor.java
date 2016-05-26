@@ -3,9 +3,8 @@ package content_analyzer;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to process text (tweets and comments)
@@ -14,9 +13,12 @@ import java.util.ArrayList;
 
 public class Processor {
 
-    private static ArrayList<String> stopwordsList = new ArrayList<>();
+    private static ArrayList<String> stopwordsList;
+    private static StanfordLemmatizer lemmatizer;
 
     static {
+        stopwordsList = new ArrayList<>();
+        lemmatizer =  new StanfordLemmatizer();
         try {
             try(BufferedReader br = new BufferedReader(new FileReader("input\\stopwords.txt"))) {
                 String line = br.readLine();
@@ -32,20 +34,28 @@ public class Processor {
     }
 
     /**
+     * Lemmatizes the input text
+     * @param input The text to be lemmatized
+     * @return The lemmatized words
+     */
+    private static List<String> lemmatize(String input) {
+        return lemmatizer.lemmatize(input);
+    }
+
+    /**
      * Processes a string
-     * @param input The string before the processing
+     * @param inputText The string before the processing
      * @return The parsed string
      */
-    public static String preprocess(String input){
-        String[] temp = tokenizer(input);
-        if(temp.length < 10) { // There is not extended plot technically
+    public static String preprocess(String inputText){
+        List<String> input = prepareText(inputText);
+        //String[] temp = tokenizer(inputText);
+        if(input.size() < 10) { // There is not extended plot technically
             return "";
         }
         String output = "";
-        for(String s : temp){
-            s = finalizeText(s);
+        for(String s : input){
             if(isWhitelisted(s) && !s.isEmpty()){
-                System.out.println(s);
                 output = output + " ";
                 output = output + s;
             }
@@ -61,21 +71,7 @@ public class Processor {
      * @return True if the string is white-listed, false otherwise
      */
     private static boolean isWhitelisted(String str){
-        return !isStopWord(str) && !isNumeric(str) && !isURL(str);
-    }
-
-    /**
-     * Checks whether a string contains URLs or not
-     * @param str The string to be checked
-     * @return True, if the string contains a URL, or false otherwise
-     */
-    private static boolean isURL(String str){
-        try {
-            URL url = new URL(str);
-            return true;
-        } catch (MalformedURLException e){
-            return false;
-        }
+        return !isStopWord(str) && !isNumeric(str);
     }
 
     /**
@@ -92,7 +88,7 @@ public class Processor {
      * @param str The string to be checked
      * @return True, if the string contains stop-words, or false otherwise
      */
-    private static boolean isStopWord(String str){
+    public static boolean isStopWord(String str){
         return stopwordsList.contains(str);
     }
 
@@ -120,11 +116,7 @@ public class Processor {
      * @return The string without punctuation
      */
     private static String removePunctuation(String input){
-        input = input.replaceAll("[.,:;()\\[\\]{}?_\\-!\'*\"@#$%^&+=|~`>’<]+", " ");
-        input = input.replaceAll("\\s+"," ");
-        input = input.trim();
-
-        return input;
+        return input.replaceAll("\\W", " ");
     }
 
     /**
@@ -133,11 +125,25 @@ public class Processor {
      * @return The string without punctuation
      */
     private static String removeSingleCharacter(String input){
-        input = input.replaceAll("\\b[a-z]\\b", " ");
-        input = input.replaceAll("\\s+"," ");
-        input = input.trim();
+        return input.replaceAll("\\b[a-z]\\b", " ");
+    }
 
-        return input;
+    /**
+     * Removes comments inside brackets from plot
+     * @param input The string to be processed
+     * @return The text without the comments
+     */
+    private static String removeComments(String input) {
+        return input.replaceAll("\\{{2}[^\\}]*\\}{2}"," ");
+    }
+
+    /**
+     * Removes references from plot
+     * @param input The string to be processed
+     * @return The text without the references
+     */
+    private static String removeReferences(String input) {
+        return input.replaceAll("<\\/ref>|<ref .[^{}]*\\/>"," ");
     }
 
     /**
@@ -145,12 +151,16 @@ public class Processor {
      * @param input The string to be checked
      * @return The string finalized
      */
-    private static String finalizeText(String input){
+    private static List<String> prepareText(String input){
         input = toLowerCase(input);
+        input = removeReferences(input);
+        input = removeComments(input);
         input = removePunctuation(input);
         input = removeSingleCharacter(input);
+        input = input.replaceAll("\\s+"," ");
+        input = input.trim();
 
-        return input;
+        return lemmatize(input);
     }
 
 }
