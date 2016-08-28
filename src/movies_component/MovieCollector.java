@@ -151,7 +151,6 @@ public class MovieCollector {
      * @return The URL of the Wikipedia poster
      */
     private static String getIconURL(String page, Wiki wiki) {
-        // TODO: 4/3/2016 ImageInfo Class bug probably
         String imageName;
         String iconURL = "";
         Matcher m = Pattern.compile("(?i)image\\s*=\\s*([\\w\\d\\s'.]*)").matcher(page); // Get the image file name
@@ -227,14 +226,13 @@ public class MovieCollector {
                     if(!extendedPlot.isEmpty()) { // Exclude films with empty Wikipedia pages
                         // Get all the extra information needed to present the film; OPTIONAL FIELDS
                         String categories = getCategories(page);
-                        String synopsis = getSynopsis(page);
-                        String iconURL = getIconURL(page, wiki);
-                        String cast = getStars(page);
-                        String director = getDirector(page);
                         String imdbURL = getIMDbLink(page);
-                        Movie m = new Movie(title, yearNumber, categories, synopsis, iconURL, cast, director,
-                                imdbURL, extendedPlot); // Create Movie object
-                        storagerSQL.InsertMovietoDB(m); // Insert movie to DB
+                        if(imdbURL.length() < 10) { // We want only movies that have an IMDb page
+                        } else {
+                            // Create Movie object
+                            Movie m = new Movie(title, yearNumber, categories, page, imdbURL, extendedPlot);
+                            storagerSQL.InsertMovietoDB(m); // Insert movie to DB
+                        }
                     }
                 }
             }

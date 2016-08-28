@@ -8,10 +8,7 @@ public class Movie {
     private String title;
     private int year;
     private String categories;
-    private String synopsis;
-    private String iconURL;
-    private String cast;
-    private String director;
+    private String wikipediaPage;
     private String imdbURL;
     private String extendedPlot;
 
@@ -20,22 +17,15 @@ public class Movie {
      * @param title The movie's title
      * @param year The movie's production year
      * @param categories The categories related to the movie
-     * @param synopsis The short synopsis of the movie
-     * @param iconURL The movie's icon URL
-     * @param cast The movie's cast
-     * @param director The movie's director
+     * @param wikipediaPage The whole wikipedia page as a text
      * @param imdbURL The movie's IMDb page URL
      * @param extendedPlot The movie's extended plot
      */
-    public Movie(String title, int year, String categories, String synopsis, String iconURL, String cast,
-                 String director, String imdbURL, String extendedPlot) {
+    public Movie(String title, int year, String categories, String wikipediaPage, String imdbURL, String extendedPlot) {
         this.title = title;
         this.year = year;
         this.categories = categories;
-        this.synopsis = synopsis;
-        this.iconURL = iconURL;
-        this.cast = cast;
-        this.director = director;
+        this.wikipediaPage = wikipediaPage;
         this.imdbURL = imdbURL;
         this.extendedPlot = extendedPlot;
     }
@@ -65,35 +55,11 @@ public class Movie {
     }
 
     /**
-     * Gets the short synopsis of the movie
+     * Gets the wikipedia page of the movie
      * @return The movie's short synopsis
      */
-    public String getSynopsis() {
-        return synopsis;
-    }
-
-    /**
-     * Gets the icon URL of the movie
-     * @return The movie's icon URL
-     */
-    public String getIconURL() {
-        return iconURL;
-    }
-
-    /**
-     * Gets the cast of the movie
-     * @return The movie's cast in a String separated by commas
-     */
-    public String getCast() {
-        return cast;
-    }
-
-    /**
-     * Gets the director of the movie
-     * @return The movie's director
-     */
-    public String getDirector() {
-        return director;
+    public String getWikipediaPage() {
+        return wikipediaPage;
     }
 
     /**

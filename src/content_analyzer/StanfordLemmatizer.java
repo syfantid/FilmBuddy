@@ -7,8 +7,10 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
+import movies_component.MovieStorager;
 
 
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -54,5 +56,11 @@ public class StanfordLemmatizer {
             }
         }
         return lemmas;
+    }
+
+    public static void main(String[] args) throws SQLException {
+        MovieStorager test = new MovieStorager();
+        System.out.println(test.checkIfPlotIsNull("18261"));
+
     }
 }

@@ -13,10 +13,12 @@ import java.util.ArrayList;
 public class ContentAnalyzer {
     private static MovieStorager storagerSQL;
     private static MovieMetadataCollector storagerMongo;
+    private static int i;
 
     static {
         storagerSQL = new MovieStorager();
         storagerMongo = new MovieMetadataCollector("localhost",27017);
+        i = 1;
     }
 
     /**
@@ -44,30 +46,34 @@ public class ContentAnalyzer {
      */
     private static void cleanAndInsertSemantics() throws SQLException {
         ArrayList<String> ids = getMovieIDs(); // Get the IDs of all the movies
-
        for(String id : ids) { // for each film
-           System.out.println("Working on movie with ID: " + id);
-           // Fetch the extended plot
-           String query = "SELECT `extended_plot` FROM `all_movies` WHERE `id`=" + id;
-           ResultSet rs = storagerSQL.selectQuery(query);
-           // "Clear" the extended plot
-           rs.next();
-           String extendedPlot = rs.getString(1);
-           extendedPlot = clearText(extendedPlot);
-           if(extendedPlot.isEmpty()) { // There is no extended plot; Handles problem
-               // Delete movies with no extended plot
-               storagerMongo.deleteMovie(id);
-               storagerSQL.deleteMovie(id);
-           // Insert parsed plot into MySQL DB
+           System.out.println(i++ + ". Working on movie with ID: " + id);
+           // If plot is null then populate it, otherwise it has already been processed
+           if (storagerSQL.checkIfPlotIsNull(id)) {
+               // Fetch the extended plot
+               String query = "SELECT `extended_plot` FROM `all_movies` WHERE `id`=" + id;
+               ResultSet rs = storagerSQL.selectQuery(query);
+               // "Clear" the extended plot
+               rs.next();
+               String extendedPlot = rs.getString(1);
+               extendedPlot = clearText(extendedPlot);
+               if (extendedPlot.isEmpty()) { // There is no extended plot; Handles problem
+                   // Delete movies with no extended plot
+                   storagerMongo.deleteMovie(id);
+                   storagerSQL.deleteMovie(id);
+                   // Insert parsed plot into MySQL DB
+               } else {
+                   storagerSQL.insertParsedPlot(id, extendedPlot);
+                   // Find the semantics plot
+                   String semantics = SemanticsExtractor.findSemantics(extendedPlot);
+                   // Insert the semantics plot in the Database
+                   storagerSQL.insertSemanticPlot(id, semantics);
+                   System.out.println("\nID: " + id + " Extended Plot: " + extendedPlot + "\nSemantics plot: " + semantics);
+               }
            } else {
-               storagerSQL.insertParsedPlot(id,extendedPlot);
-               // Find the semantics plot
-               String semantics = SemanticsExtractor.findSemantics(extendedPlot);
-               // Insert the semantics plot in the Database
-               storagerSQL.insertSemanticPlot(id, semantics);
-               System.out.println("\nID: " + id + " Extended Plot: " + extendedPlot + "\nSemantics plot: " + semantics);
+               System.out.println("Movie has been already parsed for semantic relatedness!");
            }
-        }
+       }
     }
 
     /**

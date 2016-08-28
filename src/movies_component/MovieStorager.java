@@ -43,20 +43,17 @@ public class MovieStorager {
      */
     public void InsertMovietoDB(Movie m) throws SQLException {
         // The mysql insert statement
-        String query = " insert into all_movies (title, year, categories, synopsis, icon_url, cast, " +
-                "director, imdb_url, extended_plot)" + " values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = " insert into all_movies (title, year, categories, wikipedia_page, " +
+                "imdb_url, extended_plot)" + " values (?, ?, ?, ?, ?, ?)";
 
         // Create the mysql insert PreparedStatement
         PreparedStatement preparedStmt = conn.prepareStatement(query);
         preparedStmt.setString(1, m.getTitle());
         preparedStmt.setInt(2, m.getYear());
         preparedStmt.setString(3, m.getCategories());
-        preparedStmt.setString(4, m.getSynopsis());
-        preparedStmt.setString(5, m.getIconURL());
-        preparedStmt.setString(6, m.getCast());
-        preparedStmt.setString(7, m.getDirector());
-        preparedStmt.setString(8, m.getImdbURL());
-        preparedStmt.setString(9, m.getExtendedPlot());
+        preparedStmt.setString(4, m.getWikipediaPage());
+        preparedStmt.setString(5, m.getImdbURL());
+        preparedStmt.setString(6, m.getExtendedPlot());
 
             // Execute the PreparedStatement
         try {
@@ -101,6 +98,29 @@ public class MovieStorager {
     }
 
     /**
+     * Checks if semantics_plot is null
+     * @param id The id of the movie to be checked
+     * @return True if the semantics_plot is null, false otherwise
+     */
+    public boolean checkIfPlotIsNull(String id) throws SQLException {
+        String query;
+        query = "SELECT * FROM `all_movies` WHERE `id`= " + id + " AND `semantics_plot` IS NULL";
+        PreparedStatement preparedStmtAux;
+        // Execute the PreparedStatement
+
+        ResultSet set = null;
+        try {
+            // Create the mysql select PreparedStatement
+            PreparedStatement statement = conn.prepareStatement(query);
+            // Execute the PreparedStatement
+            set = statement.executeQuery(query);
+        } catch (Exception e) {
+            System.out.println("Exception in query method:\n" + e.getMessage());
+        }
+        return (set.isBeforeFirst()); //If set is not null, then the semantics_plot is null
+    }
+
+    /**
      * Inserts the film's plot column value
      * @param id The ID of the film
      * @param plot The plot
@@ -108,7 +128,7 @@ public class MovieStorager {
      */
     public void insertPlot(String id, String plot, String type) {
         String query;
-        if(type.equals("parsed")) {
+        if (type.equals("parsed")) {
             query = " UPDATE `all_movies` SET `parsed_plot`= ? WHERE `id`= ? ";
         } else {
             query = " UPDATE `all_movies` SET `semantics_plot`= ? WHERE `id`= ? ";
@@ -122,8 +142,6 @@ public class MovieStorager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-
     }
 
     /**

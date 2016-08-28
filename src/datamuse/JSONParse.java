@@ -33,12 +33,19 @@ public class JSONParse {
     public String[] parseWords(String in) {
         JsonParserFactory factory=JsonParserFactory.getInstance();
         JSONParser parser=factory.newJsonParser();
-        Map jsonData=parser.parseJson(in);
-        List al= (List) jsonData.get("root");
-        String[] results = new String[al.size()];
-        for (int i = 0; i < al.size(); i++) {
-            results[i] = (String) ((Map)al.get(i)).get("word");
+        String[] results;
+        try {
+            Map jsonData=parser.parseJson(in);
+            List al= (List) jsonData.get("root");
+            results = new String[al.size()];
+            for (int i = 0; i < al.size(); i++) {
+                results[i] = (String) ((Map)al.get(i)).get("word");
+            }
+        } catch(com.json.exceptions.JSONParsingException e) {
+            results = new String[0];
+            e.printStackTrace();
         }
+
         return results;
     }
 
