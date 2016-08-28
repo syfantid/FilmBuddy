@@ -10,10 +10,10 @@ Project for my thesis; Social Recommender System
 3. com.google.code.gson:gson:2.6.22 // GSON format handling
 4. edu.stanford.nlp:stanford-corenlp:3.6.02 // NLP functionality (Lemmatization)
 5. org.slf4j:slf4j-nop:1.6.22
+6. mysql:mysql-connector-java:6.0.32 // Connecting to a MySQL Database with Java
 
 ### Java Libraries
 1. jwiki-v1.2.jar // Extracting Wikipedia articles' pages with Java
-2. mysql-connector-java-5.0.8-bin2 // Connecting to a MySQL Database through Java
 3. stanford-english-corenlp-2016-01-10-models // NLP functionality (Lemmatization)
 4. quick-json-1.0.2.3 // JSON format handling
 5. jsoup-1.9.2.jar 
