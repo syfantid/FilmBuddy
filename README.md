@@ -17,3 +17,6 @@ Project for my thesis; Social Recommender System
 3. stanford-english-corenlp-2016-01-10-models // NLP functionality (Lemmatization)
 4. quick-json-1.0.2.3 // JSON format handling
 5. jsoup-1.9.2.jar 
+
+#### Installing SOLR: http://lucene.apache.org/solr/
+#### Installing Bootstrap: http://getbootstrap.com/getting-started/
