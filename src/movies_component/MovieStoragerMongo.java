@@ -9,6 +9,8 @@ import com.omertron.omdbapi.OmdbApi;
 import com.omertron.omdbapi.model.OmdbVideoFull;
 import com.omertron.omdbapi.tools.OmdbBuilder;
 import org.bson.Document;
+import org.json.JSONObject;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -16,10 +18,10 @@ import java.sql.SQLException;
  * Class to collect metadata about the movies from OMDb, store them in MongoDB and handle the MongoDB
  * Created by Sofia on 4/7/2016.
  */
-public class MovieMetadataCollector {
+public class MovieStoragerMongo {
     // Fields for movies DB
-    public static final String _MOVIE_JSON_  = "movie";
-    public static final String _MOVIE_ID_ = "movie_id";
+    private static final String _MOVIE_JSON_  = "movie";
+    private static final String _MOVIE_ID_ = "movie_id";
 
     private MongoDatabase _db;
     private String _coll_name_movies;
@@ -29,7 +31,7 @@ public class MovieMetadataCollector {
      * @param host The host name of the server
      * @param port The port of the server
      */
-    public MovieMetadataCollector(String host, int port) {
+    public MovieStoragerMongo(String host, int port) {
         MongoClient mongoClient = new MongoClient(host, port);
         _db = mongoClient.getDatabase("movies_component");
         _coll_name_movies = "all_movies";
@@ -40,7 +42,7 @@ public class MovieMetadataCollector {
      * @param id The movie's MySQL DB id
      * @param imdbID The movie's IMDb ID
      */
-    public void addMovie(String id, String imdbID) throws OMDBException {
+    private void addMovie(String id, String imdbID) throws OMDBException {
         MongoCollection<Document> coll = _db.getCollection(_coll_name_movies);
         String json = findMovie(imdbID);
         
@@ -60,9 +62,15 @@ public class MovieMetadataCollector {
     private String findMovie(String imdbID) throws OMDBException {
         OmdbApi omdb = new OmdbApi();
         Gson gson = new Gson();
-        // TODO: 4/7/2016 Throws exception; Check with Github developer
         OmdbVideoFull result = omdb.getInfo(new OmdbBuilder().setImdbId(imdbID).setPlotLong().build());
         return gson.toJson(result);
+    }
+
+    public JSONObject getMovie(String id) {
+        MongoCollection<Document> coll = _db.getCollection(_coll_name_movies);
+
+        Document docToFind = new Document("movie_id",id);
+        return new JSONObject(coll.find(docToFind).first().toJson());
     }
 
     public void deleteMovie(String id) {
@@ -77,8 +85,8 @@ public class MovieMetadataCollector {
      * @param args Main function's arguments; can be null
      */
     public static void main(String[] args) throws SQLException {
-        MovieMetadataCollector mongoConnector = new MovieMetadataCollector("localhost", 27017);
-        MovieStorager storagerSQL = new MovieStorager();
+        MovieStoragerMongo mongoConnector = new MovieStoragerMongo("localhost", 27017);
+        MovieStoragerSQL storagerSQL = new MovieStoragerSQL();
 
         // The mysql select statement
         String query = " SELECT id,imdb_url FROM `all_movies` ";

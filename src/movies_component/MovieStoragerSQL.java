@@ -4,19 +4,21 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import com.mongodb.client.MongoDatabase;
 import models.*;
 
 /**
  * Class to handle the MySQL Database functionality
  * Created by Sofia on 4/3/2016.
  */
-public class MovieStorager {
+public class MovieStoragerSQL {
     private static Connection conn;
 
     /**
      * Constructor of the class; initializes the connection to the Database
      */
-    public MovieStorager() {
+    public MovieStoragerSQL() {
         MySQLDatabase db = new MySQLDatabase();
         if (db.connect()) {
             conn = db.getConnection();
@@ -41,10 +43,10 @@ public class MovieStorager {
      * @param m The movie to be inserted
      * @throws SQLException In case a connection is not open or there is a problem with the inserted values
      */
-    public void InsertMovietoDB(Movie m) throws SQLException {
+    void InsertMovietoDB(Movie m) throws SQLException {
         // The mysql insert statement
-        String query = " insert into all_movies (title, year, categories, wikipedia_page, " +
-                "imdb_url, extended_plot)" + " values (?, ?, ?, ?, ?, ?)";
+        String query = " insert into `all_movies` (`title`, `year`, `categories`, `wikipedia_page`, " +
+                "`imdb_url`, `extended_plot`)" + " values (?, ?, ?, ?, ?, ?)";
 
         // Create the mysql insert PreparedStatement
         PreparedStatement preparedStmt = conn.prepareStatement(query);
@@ -85,7 +87,7 @@ public class MovieStorager {
      * @param semantics The semantics plot
      */
     public void insertSemanticPlot(String id, String semantics) {
-        insertPlot(id,semantics,"semantics");
+        insertField(id,semantics,"semantics_plot");
     }
 
     /**
@@ -94,7 +96,7 @@ public class MovieStorager {
      * @param parsed The parsed plot
      */
     public void insertParsedPlot(String id, String parsed) {
-        insertPlot(id,parsed,"parsed");
+        insertField(id,parsed,"parsed_plot");
     }
 
     /**
@@ -121,26 +123,44 @@ public class MovieStorager {
     }
 
     /**
-     * Inserts the film's plot column value
+     * Inserts fields in the DB
      * @param id The ID of the film
-     * @param plot The plot
-     * @param type The type of the plot; "parsed" for parsed_plot and "semantics" for semantics_plot
+     * @param field The content of the field to be added
+     * @param field_type The type of the field (name of the column); e.g. "parsed_plot" for parsed_plot
      */
-    public void insertPlot(String id, String plot, String type) {
-        String query;
-        if (type.equals("parsed")) {
-            query = " UPDATE `all_movies` SET `parsed_plot`= ? WHERE `id`= ? ";
-        } else {
-            query = " UPDATE `all_movies` SET `semantics_plot`= ? WHERE `id`= ? ";
-        }
+    public void insertField(String id, String field, String field_type) {
+        String query = " UPDATE `all_movies` SET " + field_type  + " = ? WHERE `id`= ? ";
+
         PreparedStatement preparedStmtAux;
         try {
             preparedStmtAux = conn.prepareStatement(query);
-            preparedStmtAux.setString(1, plot);
+            preparedStmtAux.setString(1, field);
             preparedStmtAux.setString(2, id);
             preparedStmtAux.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Inserts numeric fields in the DB
+     * @param id The ID of the film
+     * @param field The numeric field to be added
+     * @param field_type The type of the field (name of the column)
+     */
+    public void insertField(String id, Double field, String field_type) {
+        if(field != null) {
+            String query = " UPDATE `all_movies` SET " + field_type + " = ? WHERE `id`= ? ";
+
+            PreparedStatement preparedStmtAux;
+            try {
+                preparedStmtAux = conn.prepareStatement(query);
+                preparedStmtAux.setDouble(1, field);
+                preparedStmtAux.setString(2, id);
+                preparedStmtAux.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 

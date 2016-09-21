@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * Class to collect all movies and their information from Wikipedia
  * Created by Sofia on 3/31/2016.
  */
-public class MovieCollector {
+public class MovieCollectorSQL {
     private static String username;
     private static String password;
 
@@ -207,7 +207,7 @@ public class MovieCollector {
         username = properties.getProperty("username");
         password = properties.getProperty("password");
         Wiki wiki = new Wiki(username, password, "en.wikipedia.org"); // Login to Wikipedia
-        MovieStorager storagerSQL = new MovieStorager();
+        MovieStoragerSQL storagerSQL = new MovieStoragerSQL();
 
         int yearNumber = 1901;
         while(yearNumber <= 2016) {
@@ -227,8 +227,7 @@ public class MovieCollector {
                         // Get all the extra information needed to present the film; OPTIONAL FIELDS
                         String categories = getCategories(page);
                         String imdbURL = getIMDbLink(page);
-                        if(imdbURL.length() < 10) { // We want only movies that have an IMDb page
-                        } else {
+                        if(imdbURL.length() > 10) { // We want only movies that have an IMDb page
                             // Create Movie object
                             Movie m = new Movie(title, yearNumber, categories, page, imdbURL, extendedPlot);
                             storagerSQL.InsertMovietoDB(m); // Insert movie to DB

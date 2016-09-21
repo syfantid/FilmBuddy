@@ -1,7 +1,9 @@
 package content_analyzer;
 
-import movies_component.MovieMetadataCollector;
-import movies_component.MovieStorager;
+import movies_component.MovieStoragerMongo;
+import movies_component.MovieStoragerSQL;
+import org.json.JSONObject;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,13 +13,13 @@ import java.util.ArrayList;
  * Created by Sofia on 4/8/2016.
  */
 public class ContentAnalyzer {
-    private static MovieStorager storagerSQL;
-    private static MovieMetadataCollector storagerMongo;
+    private static MovieStoragerSQL storagerSQL;
+    private static MovieStoragerMongo storagerMongo;
     private static int i;
 
     static {
-        storagerSQL = new MovieStorager();
-        storagerMongo = new MovieMetadataCollector("localhost",27017);
+        storagerSQL = new MovieStoragerSQL();
+        storagerMongo = new MovieStoragerMongo("localhost",27017);
         i = 1;
     }
 
@@ -38,6 +40,37 @@ public class ContentAnalyzer {
             ids.add(rs.getString("id"));
         }
         return ids;
+    }
+
+
+    private static void migrateFromMongoToMySQL() throws SQLException {
+        ArrayList<String> ids = getMovieIDs(); // Gets all IDs from MySQL DB
+
+        // Fields to be migrated
+        String icon;
+        String genre;
+        Double rating;
+        String countries;
+
+        for(String id:ids) {
+            JSONObject movie = storagerMongo.getMovie(id);
+            if(movie.length() != 0) { // If movie exists in Mongo database
+                icon = movie.getJSONObject("movie").getString("poster");
+                genre = movie.getJSONObject("movie").getString("genre");
+                try {
+                    rating = Double.parseDouble(movie.getJSONObject("movie").getString("imdbRating"));
+                } catch(Exception e) { // In case there is no IMDB rating available ("N/A")
+                    rating = null;
+                }
+                countries = movie.getJSONObject("movie").get("countries").toString();
+
+                storagerSQL.insertField(id,icon,"icon");
+                storagerSQL.insertField(id,genre,"genre");
+                storagerSQL.insertField(id,rating,"imdb_rating");
+                storagerSQL.insertField(id,countries,"countries");
+            }
+        }
+
     }
 
     /**
@@ -91,7 +124,8 @@ public class ContentAnalyzer {
      * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
-        cleanAndInsertSemantics();
+        //cleanAndInsertSemantics();
+        migrateFromMongoToMySQL();
         if(!storagerSQL.closeConnection()) {
             System.out.println("Failed to close the connection!");
         }

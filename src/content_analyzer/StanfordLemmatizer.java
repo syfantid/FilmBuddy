@@ -7,7 +7,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
-import movies_component.MovieStorager;
+import movies_component.MovieStoragerSQL;
 
 
 import java.sql.SQLException;
@@ -20,12 +20,12 @@ import java.util.Properties;
  */
 public class StanfordLemmatizer {
 
-    protected StanfordCoreNLP pipeline;
+    private StanfordCoreNLP pipeline;
 
     /**
      * Class constructor used for initialisations
      */
-    public StanfordLemmatizer() {
+    StanfordLemmatizer() {
         // Create StanfordCoreNLP object properties, with POS tagging (required for lemmatization), and lemmatization
         Properties props;
         props = new Properties();
@@ -38,7 +38,7 @@ public class StanfordLemmatizer {
      * @param documentText The input text to be lemmatized
      * @return An array of lemmatized words
      */
-    public List<String> lemmatize(String documentText)
+    List<String> lemmatize(String documentText)
     {
         List<String> lemmas = new LinkedList<>();
         // Create an empty Annotation just with the given text
@@ -59,7 +59,7 @@ public class StanfordLemmatizer {
     }
 
     public static void main(String[] args) throws SQLException {
-        MovieStorager test = new MovieStorager();
+        MovieStoragerSQL test = new MovieStoragerSQL();
         System.out.println(test.checkIfPlotIsNull("18261"));
 
     }

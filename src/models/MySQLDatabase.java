@@ -19,20 +19,17 @@ public class MySQLDatabase {
     private static String pass;
     private Connection connection;
 
-    /**
-     * Initializes the properties based on properties file given in input directory
-     */
     static {
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream(new File("input\\credentials.properties")));
+            properties.load(new FileInputStream(new File("input/credentials.properties")));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         myDriver = properties.getProperty("driver");
         myUrl = properties.getProperty("url");
-        user = properties.getProperty("username");
+        user = properties.getProperty("user");
         pass = properties.getProperty("password");
     }
 
