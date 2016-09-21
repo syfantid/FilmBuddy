@@ -83,6 +83,7 @@ public class MovieStoragerMongo {
     /**
      * Main function to obtain metadata from OMDb and store them in a Mongo Database
      * @param args Main function's arguments; can be null
+     * @throws SQLException In case the connection with the MySQL database fails
      */
     public static void main(String[] args) throws SQLException {
         MovieStoragerMongo mongoConnector = new MovieStoragerMongo("localhost", 27017);

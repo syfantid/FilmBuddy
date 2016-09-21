@@ -121,7 +121,7 @@ public class ContentAnalyzer {
     /**
      * Main funtion that performs the content analysis
      * @param args None needed
-     * @throws SQLException
+     * @throws SQLException In case the connection fails
      */
     public static void main(String[] args) throws SQLException {
         //cleanAndInsertSemantics();

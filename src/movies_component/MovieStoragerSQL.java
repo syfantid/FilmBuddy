@@ -45,8 +45,8 @@ public class MovieStoragerSQL {
      */
     void InsertMovietoDB(Movie m) throws SQLException {
         // The mysql insert statement
-        String query = " insert into `all_movies` (`title`, `year`, `categories`, `wikipedia_page`, " +
-                "`imdb_url`, `extended_plot`)" + " values (?, ?, ?, ?, ?, ?)";
+        String query = " insert into all_movies (title, year, categories, wikipedia_page, " +
+                "imdb_url, extended_plot)" + " values (?, ?, ?, ?, ?, ?)";
 
         // Create the mysql insert PreparedStatement
         PreparedStatement preparedStmt = conn.prepareStatement(query);
@@ -102,6 +102,7 @@ public class MovieStoragerSQL {
     /**
      * Checks if semantics_plot is null
      * @param id The id of the movie to be checked
+     * @throws SQLException In case the connection with the MySQL database fails
      * @return True if the semantics_plot is null, false otherwise
      */
     public boolean checkIfPlotIsNull(String id) throws SQLException {
