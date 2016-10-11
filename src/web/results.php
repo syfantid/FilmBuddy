@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+
 <?php
 
 require_once('constants.php');
@@ -6,10 +8,11 @@ require_once('constants.php');
 // make sure browsers see this page as utf-8 encoded HTML
 header('Content-Type: text/html; charset=utf-8');
 
-$rows = 10;
+$rows = 9;
 $start = 0;
 $query = isset($_REQUEST['q']) ? $_REQUEST['q'] : false;
 $urlQuery = $query;
+$options = array();
 
 if ($query)
 
@@ -43,7 +46,7 @@ if ($query)
         } elseif ($currentPage > $totalPages) {
             $currentPage = $totalPages;
         }
-        $start = ($currentPage - 1) * 10; // Calculate the offset for the next page
+        $start = ($currentPage - 1) * $rows; // Calculate the offset for the page
         if ($currentPage == $totalPages) { // The rows number may change only for the last page
             $rows = $total - $start;
         }
@@ -51,7 +54,7 @@ if ($query)
         $currentPage = 1;
         $start = 0;
         if ($currentPage == $totalPages) {
-            $start = ($currentPage - 1) * 10; // Calculate the offset for the next page
+            $start = ($currentPage - 1) * $rows; // Calculate the offset for the page
             $rows = $total - $start;
         }
     }
@@ -72,72 +75,175 @@ if ($query)
 }
 
 function formatSimpleQuery($query,$start,$rows) {
-    $url = "http://" . SOLRHOST . ":" . SOLRPORT . SOLRNAME . "/movies/select?df=semantics_plot&indent=on&q=(" . $query
-        . ")&rows=" . $rows . "&start=" . $start . "&wt=json";
+    $url = "http://" . SOLRHOST . ":" . SOLRPORT . SOLRNAME . "/movies/select?";
+    $options = array("df"=>"semantics_plot","indent"=>"on","q"=>$query,"rows"=>$rows,"start"=>$start,"wt"=>"json");
+    $url .= http_build_query($options,'','&');
     return $url;
 }
 ?>
 
-<?php
-// display results
-if ($results)
-{
-    $results = json_decode($results,true);
-    ?>
-    <html>
-    <body>
-    <div>Results <?php echo $start+1; ?> - <?php echo $start+$rows;?> of <?php echo $total; ?>:</div>
-    <ol>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Film Buddy is a Movie Recommender Engine, which identifies the user's interests
+    by extracting information from their Facebook profiles and using semantic expansion. Film buddy automates the
+    recommendation process and helps users find what truly suits their tastes in the blink of an eye!">
+    <meta name="author" content="Sofia Yfantidou">
+
+    <title>Film Buddy: A Social Movie Recommender Engine using Semantics</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="assets/css/3-col-portfolio.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.php">Film Buddy</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="#">About</a>
+                    </li>
+                    <li>
+                        <a href="#">Services</a>
+                    </li>
+                    <li>
+                        <a href="#">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Content -->
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Results
+                    <small>Movies that truly suit your interests!</small>
+                </h1>
+            </div>
+        </div>
+        <!-- /.row -->
+
         <?php
-        // iterate result documents
-        foreach ($results['response']['docs'] as $doc)
-        {
+        // Display results
+        if ($results) {
+            $results = json_decode($results,true);
+            $i = 0; // Results printed so far counter
+            foreach ($results['response']['docs'] as $doc) {
+                if($i%3==0) {
+                    echo "<div class='row'>";
+                } ?>
+                <div class="col-md-4 portfolio-item">
+                    <a href="#">
+                        <?php if($doc['icon'] == "N/A" || !strpos(@get_headers(urldecode($doc['icon']))[0],"200")) { ?>
+                            <img class="img-responsive" src="images/keep-calm-but-sorry-no-poster.png"
+                                 alt="Movie poster thumbnail"> <?php
+                        } else { ?>
+                            <img class="img-responsive" src="<?php echo $doc['icon']; ?>"
+                                 alt="Movie poster thumbnail"> <?php
+                        }
+                    ?>
+                    </a>
+                    <h3>
+                        <a href="#"><?php echo $doc['title'][0]; ?></a>
+                    </h3>
+                    <p><?php echo $doc['genre']; ?></p>
+                </div>
+                <?php
+                if($i%3 == 2) {
+                    echo "</div>";
+                }
+                $i++;
+            }
             ?>
-            <li>
-                <table style="border: 1px solid black; text-align: left">
+
+
+            <hr>
+
+            <!-- Pagination -->
+            <div class="row text-center">
+                <div class="col-lg-12">
                     <?php
-                    // iterate document fields / values
-                    foreach ($doc as $field => $value) {
-                        if (is_array($value)) { // $value is an array (id, version, not useful information)
-                        ?>
-                            <tr>
-                                <th><?php echo htmlspecialchars($field, ENT_NOQUOTES, 'utf-8'); ?></th>
-                                <td><?php echo htmlspecialchars($value[0], ENT_NOQUOTES, 'utf-8'); ?></td>
-                            </tr>
-                        <?php
+
+                    /* Show previous pages' links */
+                    if ($currentPage > 1) { // First page doesn't have a previous page
+                        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=1' class='btn btn-default btn-lg' role='button'>First</a> "; // Link to first page
+                        $previousPage = $currentPage - 1; // Previous page number
+                        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$previousPage' class='btn btn-default btn-lg' role='button'>Previous</a> "; // Link to previous page
+                        if ($currentPage == $totalPages) {
+                            echo " <span class='btn btn-default btn-lg disabled' role='button'>Next</span> ";
+                            echo " <span class='btn btn-default btn-lg disabled' role='button'>Last</span> ";
                         }
                     }
-                    ?>
-                </table>
-            </li>
-            <?php
-        }
-        ?>
-    </ol>
-    <?php
 
-    /* Show previous pages' links */
-    if ($currentPage > 1) { // First page doesn't have a previous page
-        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=1' class='button'>First</a> "; // Link to first page
-        $previousPage = $currentPage - 1; // Previous page number
-        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$previousPage' class='button'>Previous</a> "; // Link to previous page
-        if ($currentPage == $totalPages) {
-            echo " <span class='disabled button'>Next</span> ";
-            echo " <span class='disabled button'>Last</span> ";
-        }
-    }
+                    /* Show next pages' links */
+                    if ($currentPage != $totalPages) { // Last page doesn't have a next page
+                        if ($currentPage == 1) {
+                            echo " <span class='btn btn-default btn-lg disabled'>First</span> ";
+                            echo " <span class='btn btn-default btn-lg disabled'>Previous</span> ";
+                        }
+                        $nextPage = $currentPage + 1; // Next page number
+                        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$nextPage' class='btn btn-default btn-lg' role='button'>Next</a> "; // Link to next page
+                        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$totalPages' class='btn btn-default btn-lg' role='button'>Last</a>"; // Link to last page
+                    }
+                    echo "
+                </div>
+            </div>
+            <!-- /.row -->";
+        } ?>
 
-    /* Show next pages' links */
-    if ($currentPage != $totalPages) { // Last page doesn't have a next page
-        if ($currentPage == 1) {
-            echo " <span class='disabled button'>First</span> ";
-            echo " <span class='disabled button'>Previous</span> ";
-        }
-        $nextPage = $currentPage + 1; // Next page number
-        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$nextPage' class='button'>Next</a> "; // Link to next page
-        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$totalPages' class='button'>Last</a>"; // Link to last page
-    }
-}
-?>
+        <hr>
+
+        <!-- Footer -->
+        <footer>
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>Copyright &copy; Film Buddy 2016</p>
+                </div>
+            </div>
+            <!-- /.row -->
+        </footer>
+
+    </div>
+    <!-- /.container -->
+
+    <!-- jQuery -->
+    <script src="assets/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="assets/js/bootstrap.min.js"></script>
+
 </body>
+
 </html>
