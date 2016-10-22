@@ -10,21 +10,49 @@ header('Content-Type: text/html; charset=utf-8');
 
 $rows = 9;
 $start = 0;
+/* Get query anf filters */
 $query = isset($_REQUEST['q']) ? $_REQUEST['q'] : false;
+$genres = isset($_REQUEST['genre']) ? $_REQUEST['genre'] : array();
+$years = isset($_REQUEST['year']) ? $_REQUEST['year'] : "";
+$imdb = isset($_REQUEST['imdb']) ? $_REQUEST['imdb'] : "";
+$continents = isset($_REQUEST['continents']) ? $_REQUEST['continents'] : array();
+/* Keep original URL*/
 $urlQuery = $query;
+/* Basic options for querying*/
 $options = array();
+/* File that includes all unique film genres */
+$filename = "files/unique_genres.txt";
+$allGenres = file($filename, FILE_IGNORE_NEW_LINES);
+$allContinents = array("Africa", "Asia", "Europe", "North America", "South America", "Oceania");
 
-if ($query)
+
+if ($query) {
 
     // if magic quotes is enabled then stripslashes will be needed
-    if (get_magic_quotes_gpc() == 1)
-    {
+    if (get_magic_quotes_gpc() == 1) {
         $query = stripslashes($query);
     }
-{
+
+    $url = formatSimpleQuery($query, $start, $rows);
+    // Add filters
+    if(!empty($genres)) {
+        $url = addGenreFilter($genres, $url);
+    }
+    if($years != "") {
+        $years = explode(',', $years);
+        $url = addYearFilter($years, $url);
+    }
+    if($imdb != "") {
+        $imdb = explode(',', $imdb);
+        $url = addRatingFilter($imdb, $url);
+    }
+    if(!empty($continents)) {
+        $url = addContinentFilter($continents, $url);
+    }
+
     // Just to get the total number of objects returned
-    try{
-        $results = file_get_contents(formatSimpleQuery($query,$start,1));
+    try {
+        $results = file_get_contents($url);
     } catch (Exception $e) {
         // in production you'd probably log or email this error to an admin
         // and then show a special message to the user but for this example
@@ -58,18 +86,18 @@ if ($query)
             $rows = $total - $start;
         }
     }
-    $results = false;
+    $results = false; //todo Avoid calling get_contents twice IMPORTANT!
 
     // in production code you'll always want to use a try /catch for any
     // possible exceptions emitted  by searching (i.e. connection
     // problems or a query parsing error)
-    try
-    {
-        $results = file_get_contents(formatSimpleQuery($query,$start,$rows));
+    try {
+        $results = file_get_contents($url);
     } catch (Exception $e) {
         // in production you'd probably log or email this error to an admin
         // and then show a special message to the user but for this example
         // we're going to show the full exception
+        //todo Create a 404 problem page IMPORTANT!
         die("<html><head><title>SEARCH EXCEPTION</title><body><pre>{$e->__toString()}</pre></body></html>");
     }
 }
@@ -79,6 +107,40 @@ function formatSimpleQuery($query,$start,$rows) {
     $options = array("df"=>"semantics_plot","indent"=>"on","q"=>$query,"rows"=>$rows,"start"=>$start,"wt"=>"json");
     $url .= http_build_query($options,'','&');
     return $url;
+}
+
+function addFilter($extra, $url) {
+    $url .= "&";
+    $url .= http_build_query($extra, '', '&');
+    return $url;
+}
+
+function addGenreFilter($genres, $url) {
+    $genresString = "";
+    foreach ($genres as $genre) {
+        $genresString .= " " . $genre;
+    }
+    $extra = array("fq" => "genre:" . $genresString);
+    return addFilter($extra, $url);
+}
+
+function addContinentFilter($continents, $url) {
+    $continentsString = "";
+    foreach ($continents as $continent) {
+        $continentsString .= " " . $continent;
+    }
+    $extra = array("fq" => "continents:" . $continentsString);
+    return addFilter($extra, $url);
+}
+
+function addYearFilter($years, $url) {
+    $extra = array("fq" => "year:[" . $years[0] . " TO " . $years[1] . "]");
+    return addFilter($extra, $url);
+}
+
+function addRatingFilter($imdb, $url) {
+    $extra = array("fq" => "imdb_rating:[" . $imdb[0] . " TO " . $imdb[1] . "]");
+    return addFilter($extra, $url);
 }
 ?>
 
@@ -100,12 +162,26 @@ function formatSimpleQuery($query,$start,$rows) {
 
     <!-- Custom CSS -->
     <link href="assets/css/3-col-portfolio.css" rel="stylesheet">
+    <link href="assets/css/simple-sidebar.css" rel="stylesheet">
+
+    <!-- Bootstrap Slider CSS-->
+    <link href="assets/css/bootstrap-slider.min.css" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+
+    <!-- jQuery -->
+    <script src="assets/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="assets/js/bootstrap.min.js"></script>
+
+    <!-- Bootstrap Slider-->
+    <script src="assets/js/bootstrap-slider.min.js"></script>
+
     <![endif]-->
 </head>
 
@@ -142,108 +218,270 @@ function formatSimpleQuery($query,$start,$rows) {
         <!-- /.container -->
     </nav>
 
-    <!-- Page Content -->
-    <div class="container">
+    <!-- All page content except for Navigation bar-->
+    <div id="wrapper" class="toggled">
 
-        <!-- Page Header -->
-        <div class="row">
-            <div class="col-lg-12">
-                <h1 class="page-header">Results
-                    <small>Movies that truly suit your interests!</small>
-                </h1>
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    Filters
+                </li>
+                <!-- Form -->
+                <form accept-charset="utf-8" action="results.php" method="get">
+                    <!--Recreate the previous query link to prepend to form filtering results-->
+                    <input type="hidden" name="q" value="<?php echo $urlQuery;?>">
+
+                    <!--Dropdown menu for film genres filter-->
+                    <li class="dropdown">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="button-group">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genres <b class="caret"></b></a>
+                                        <ul class="dropdown-menu">
+                                            <?php
+                                            foreach($allGenres as $genre) {
+                                                ?>
+                                                <li><a href="#" class="small" data-value=<?php echo $genre?>
+                                                    tabIndex="-1"><input type="checkbox" name="genre[]" id="genre"
+                                                                         value="<?php echo $genre;?>"
+                                                            <?php if(in_array($genre, $genres)) echo "checked='checked'"; ?>
+                                                        />&nbsp;<?php echo $genre ?></a></li>
+                                                <?php
+                                            }
+                                            ?>
+
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <!--End of film genres filter-->
+
+                    <!--Slider for film year filter-->
+                    <li class="dropdown">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="button-group">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Year <b class="caret"></b></a>
+                                        <ul class="dropdown-menu">
+                                            <li><input id="year" name="year" type="text" class="span2" value="" data-slider-min="1902"
+                                                       data-slider-max="2016" data-slider-step="5"
+                                                       data-slider-value="[<?php if(!empty($years)) echo $years[0];
+                                                       else echo "1902";?>,<?php if(!empty($years)) echo $years[1];
+                                                       else echo "2016";?>]"/></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <!--End of film year filter-->
+
+                    <!--Slider for film IMDb Rating filter-->
+                    <li class="dropdown">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="button-group">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">IMDb Rating <b class="caret"></b></a>
+                                        <ul class="dropdown-menu">
+                                            <li><input id="imdb" name="imdb" type="text" class="span2" value="" data-slider-min="0"
+                                                       data-slider-max="10" data-slider-step="0.1"
+                                                       data-slider-value="[<?php if(!empty($imdb)) echo $imdb[0];
+                                                       else echo "0";?>,<?php if(!empty($imdb)) echo $imdb[1];
+                                                       else echo "10";?>]"/></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <!--End of film IMDb Rating filter-->
+
+                    <!--Dropdown menu for film continent filter-->
+                    <li class="dropdown">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="button-group">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Continents<b class="caret"></b></a>
+                                        <ul class="dropdown-menu">
+                                            <?php
+                                            foreach($allContinents as $continent) {
+                                                ?>
+                                                <li><a href="#" class="small" data-value=<?php echo $continent?>
+                                                    tabIndex="-1"><input type="checkbox" name="continents[]" id="continents"
+                                                                         value="<?php echo $continent;?>"
+                                                            <?php if(in_array($continent, $continents)) echo "checked='checked'"; ?>
+                                                        />&nbsp;<?php echo $continent ?></a></li>
+                                                <?php
+                                            }
+                                            ?>
+
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <!--End of film continent filter-->
+
+                    <li>
+                        <a href="#">About</a>
+                    </li>
+                    <li>
+                        <a href="#">Services</a>
+                    </li>
+                    <li>
+                        <a href="#">Contact</a>
+                    </li>
+                    <input type="submit" class="btn btn-default btn-md" role="button" value="Apply magic!"/>
+                </form>
+                <!-- /#form-wrapper -->
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                        <!-- Page Header -->
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <h1 class="page-header">Results
+                                    <small>Movies that truly suit your interests!</small>
+                                </h1>
+                            </div>
+                        </div>
+
+                        <!-- /.row -->
+                        <?php
+                        // Display results
+                        if ($results) {
+                        $results = json_decode($results,true);
+                        $i = 0; // Results printed so far counter
+                        ?><div class="container"><?php
+                        foreach ($results['response']['docs'] as $doc) {
+                            if($i%3==0) {
+                                echo "<div class='row'>";
+                            } ?>
+                            <div class="col-md-4 portfolio-item">
+                                <a href="#">
+                                    <?php if($doc['icon'] == "N/A" || !strpos(@get_headers(urldecode($doc['icon']))[0],"200")) { ?>
+                                        <img class="img-responsive" src="images/keep-calm-but-sorry-no-poster.jpg"
+                                             alt="Movie poster thumbnail"> <?php
+                                    } else { ?>
+                                        <img class="img-responsive" src="<?php echo $doc['icon']; ?>"
+                                             alt="Movie poster thumbnail"> <?php
+                                    }
+                                    ?>
+                                </a>
+                                <h3>
+                                    <a href="#"><?php echo $doc['title'][0]; ?></a>
+                                </h3>
+                                <p><?php echo $doc['genre']; ?></p>
+                            </div>
+                            <?php
+                            if($i%3 == 2) {
+                                echo "</div>";
+                            }
+                            $i++;
+                        }
+                        ?>
+                        </div>
+
+
+                        <hr>
+
+                        <!-- Pagination -->
+                        <div class="row text-center">
+                            <div class="col-lg-12">
+                                <?php
+
+                                /* Show previous pages' links */
+                                if ($currentPage > 1) { // First page doesn't have a previous page
+                                    echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=1' class='btn btn-default btn-lg' role='button'>First</a> "; // Link to first page
+                                    $previousPage = $currentPage - 1; // Previous page number
+                                    echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$previousPage' class='btn btn-default btn-lg' role='button'>Previous</a> "; // Link to previous page
+                                    if ($currentPage == $totalPages) {
+                                        echo " <span class='btn btn-default btn-lg disabled' role='button'>Next</span> ";
+                                        echo " <span class='btn btn-default btn-lg disabled' role='button'>Last</span> ";
+                                    }
+                                }
+
+                                /* Show next pages' links */
+                                if ($currentPage != $totalPages) { // Last page doesn't have a next page
+                                    if ($currentPage == 1) {
+                                        echo " <span class='btn btn-default btn-lg disabled'>First</span> ";
+                                        echo " <span class='btn btn-default btn-lg disabled'>Previous</span> ";
+                                    }
+                                    $nextPage = $currentPage + 1; // Next page number
+                                    echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$nextPage' class='btn btn-default btn-lg' role='button'>Next</a> "; // Link to next page
+                                    echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$totalPages' class='btn btn-default btn-lg' role='button'>Last</a>"; // Link to last page
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <!-- /.row --> <?php
+                        } ?>
+                        <hr>
+                        <!-- Footer -->
+                        <footer>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <p>Copyright &copy; Film Buddy 2016</p>
+                                </div>
+                            </div>
+                            <!-- /.row -->
+                        </footer>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- /.row -->
-
-        <?php
-        // Display results
-        if ($results) {
-            $results = json_decode($results,true);
-            $i = 0; // Results printed so far counter
-            foreach ($results['response']['docs'] as $doc) {
-                if($i%3==0) {
-                    echo "<div class='row'>";
-                } ?>
-                <div class="col-md-4 portfolio-item">
-                    <a href="#">
-                        <?php if($doc['icon'] == "N/A" || !strpos(@get_headers(urldecode($doc['icon']))[0],"200")) { ?>
-                            <img class="img-responsive" src="images/keep-calm-but-sorry-no-poster.png"
-                                 alt="Movie poster thumbnail"> <?php
-                        } else { ?>
-                            <img class="img-responsive" src="<?php echo $doc['icon']; ?>"
-                                 alt="Movie poster thumbnail"> <?php
-                        }
-                    ?>
-                    </a>
-                    <h3>
-                        <a href="#"><?php echo $doc['title'][0]; ?></a>
-                    </h3>
-                    <p><?php echo $doc['genre']; ?></p>
-                </div>
-                <?php
-                if($i%3 == 2) {
-                    echo "</div>";
-                }
-                $i++;
-            }
-            ?>
-
-
-            <hr>
-
-            <!-- Pagination -->
-            <div class="row text-center">
-                <div class="col-lg-12">
-                    <?php
-
-                    /* Show previous pages' links */
-                    if ($currentPage > 1) { // First page doesn't have a previous page
-                        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=1' class='btn btn-default btn-lg' role='button'>First</a> "; // Link to first page
-                        $previousPage = $currentPage - 1; // Previous page number
-                        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$previousPage' class='btn btn-default btn-lg' role='button'>Previous</a> "; // Link to previous page
-                        if ($currentPage == $totalPages) {
-                            echo " <span class='btn btn-default btn-lg disabled' role='button'>Next</span> ";
-                            echo " <span class='btn btn-default btn-lg disabled' role='button'>Last</span> ";
-                        }
-                    }
-
-                    /* Show next pages' links */
-                    if ($currentPage != $totalPages) { // Last page doesn't have a next page
-                        if ($currentPage == 1) {
-                            echo " <span class='btn btn-default btn-lg disabled'>First</span> ";
-                            echo " <span class='btn btn-default btn-lg disabled'>Previous</span> ";
-                        }
-                        $nextPage = $currentPage + 1; // Next page number
-                        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$nextPage' class='btn btn-default btn-lg' role='button'>Next</a> "; // Link to next page
-                        echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$totalPages' class='btn btn-default btn-lg' role='button'>Last</a>"; // Link to last page
-                    }
-                    echo "
-                </div>
-            </div>
-            <!-- /.row -->";
-        } ?>
-
-        <hr>
-
-        <!-- Footer -->
-        <footer>
-            <div class="row">
-                <div class="col-lg-12">
-                    <p>Copyright &copy; Film Buddy 2016</p>
-                </div>
-            </div>
-            <!-- /.row -->
-        </footer>
-
+        <!-- /#page-content-wrapper -->
     </div>
-    <!-- /.container -->
+    <!-- /#wrapper -->
 
-    <!-- jQuery -->
-    <script src="assets/js/jquery.js"></script>
+    <!-- Menu Toggle Script -->
+    <script>
+        $("#menu-toggle").click(function(e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+    </script>
 
-    <!-- Bootstrap Core JavaScript -->
-    <script src="assets/js/bootstrap.min.js"></script>
+    <!-- Sidebar Dropdown Animation Script -->
+    <script>
+        // Add slidedown animation to dropdown
+        $('.dropdown').on('show.bs.dropdown', function(e){
+            $(this).find('.dropdown-menu').first().stop(true, true).slideDown();
+        });
 
+        // Add slideup animation to dropdown
+        $('.dropdown').on('hide.bs.dropdown', function(e){
+            $(this).find('.dropdown-menu').first().stop(true, true).slideUp();
+        });
+    </script>
+
+    <!-- Slider Functionality Script-->
+    <script>
+        $("#year").slider({});
+        $("#year").slider({
+            tooltip: 'always'
+        });
+
+        $("#imdb").slider({});
+        $("#imdb").slider({
+            tooltip: 'always'
+        });
+    </script>
 </body>
 
 </html>

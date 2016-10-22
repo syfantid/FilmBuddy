@@ -19,7 +19,7 @@
 
 
     <div class="jumbotron">
-        <form accept-charset="utf-8" action="../results.php" method="get">
+        <form accept-charset="utf-8" action="resultsV2.php" method="get">
             <label for="q">Search:</label>
             <input id="q" name="q" type="text" placeholder="Enter your search terms" value="<?php $query = "";
             echo htmlspecialchars($query, ENT_QUOTES, 'utf-8'); ?>"/>

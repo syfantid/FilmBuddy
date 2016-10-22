@@ -1,11 +1,18 @@
 package movies_component;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.mongodb.client.MongoDatabase;
+import content_analyzer.StanfordLemmatizer;
 import models.*;
 
 /**
@@ -100,14 +107,23 @@ public class MovieStoragerSQL {
     }
 
     /**
-     * Checks if semantics_plot is null
+     * Inserts the film's continents column value
+     * @param id The ID of the film
+     * @param continents The continents
+     */
+    public void insertContinents(String id, String continents) {
+        insertField(id,continents,"continents");
+    }
+
+    /**
+     * Checks if a field is null
      * @param id The id of the movie to be checked
      * @throws SQLException In case the connection with the MySQL database fails
-     * @return True if the semantics_plot is null, false otherwise
+     * @return True if the field is null, false otherwise
      */
-    public boolean checkIfPlotIsNull(String id) throws SQLException {
+    public boolean checkIfFieldIsNull(String id, String field) throws SQLException {
         String query;
-        query = "SELECT * FROM `all_movies` WHERE `id`= " + id + " AND `semantics_plot` IS NULL";
+        query = "SELECT * FROM `all_movies` WHERE `id`= " + id + " AND " + field + " IS NULL";
         PreparedStatement preparedStmtAux;
         // Execute the PreparedStatement
 
@@ -121,6 +137,26 @@ public class MovieStoragerSQL {
             System.out.println("Exception in query method:\n" + e.getMessage());
         }
         return (set.isBeforeFirst()); //If set is not null, then the semantics_plot is null
+    }
+
+    /**
+     * Checks if continents is null
+     * @param id The id of the movie to be checked
+     * @throws SQLException In case the connection with the MySQL database fails
+     * @return True if the continents field is null, false otherwise
+     */
+    public boolean checkIfContinentsIsNull(String id) throws SQLException {
+        return checkIfFieldIsNull(id, "continents");
+    }
+
+    /**
+     * Checks if semantics_plot is null
+     * @param id The id of the movie to be checked
+     * @throws SQLException In case the connection with the MySQL database fails
+     * @return True if the semantics_plot is null, false otherwise
+     */
+    public boolean checkIfPlotIsNull(String id) throws SQLException {
+        return checkIfFieldIsNull(id, "semantics_plot");
     }
 
     /**

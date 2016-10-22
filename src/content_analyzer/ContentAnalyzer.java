@@ -4,9 +4,12 @@ import movies_component.MovieStoragerMongo;
 import movies_component.MovieStoragerSQL;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Class to analyze and populate the dataset with parsed and semantics plots
@@ -16,11 +19,56 @@ public class ContentAnalyzer {
     private static MovieStoragerSQL storagerSQL;
     private static MovieStoragerMongo storagerMongo;
     private static int i;
+    private static HashMap<String, ArrayList<String>> countriesPerContinent;
 
     static {
         storagerSQL = new MovieStoragerSQL();
         storagerMongo = new MovieStoragerMongo("localhost",27017);
         i = 1;
+
+        countriesPerContinent = new HashMap<>();
+        countriesPerContinent.put("Africa", getCountriesFromFile("africa"));
+        countriesPerContinent.put("Asia", getCountriesFromFile("asia"));
+        countriesPerContinent.put("Europe", getCountriesFromFile("europe"));
+        countriesPerContinent.put("North America", getCountriesFromFile("north_americas"));
+        countriesPerContinent.put("South America", getCountriesFromFile("americas"));
+        countriesPerContinent.put("Oceania", getCountriesFromFile("oceania"));
+    }
+
+    private static ArrayList<String> getCountriesFromFile(String country) {
+        ArrayList<String> countries = new ArrayList<>();
+        try {
+            try(BufferedReader br = new BufferedReader(new FileReader("input/" + country + ".txt"))) {
+                String line = br.readLine();
+
+                while (line != null) {
+                    countries.add(line);
+                    line = br.readLine();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return countries;
+    }
+
+    private static String getContinents(String countries) {
+        Set<String> continents = new HashSet<>();
+
+        for(String country : countries.split(",\\s*")) {
+            boolean flag = false;
+            for(String continent : countriesPerContinent.keySet()) {
+                if(countriesPerContinent.get(continent).contains(country)) {
+                    continents.add(continent);
+                    flag = true;
+                    continue;
+                }
+            }
+            if(!flag && !country.equals("N/A")) {
+                System.out.println("*************************************************************** " + country);
+            }
+        }
+        return continents.toString().replaceAll("\\[|\\]","");
     }
 
     /**
@@ -79,7 +127,7 @@ public class ContentAnalyzer {
      */
     private static void cleanAndInsertSemantics() throws SQLException {
         ArrayList<String> ids = getMovieIDs(); // Get the IDs of all the movies
-       for(String id : ids) { // for each film
+        for(String id : ids) { // for each film
            System.out.println(i++ + ". Working on movie with ID: " + id);
            // If plot is null then populate it, otherwise it has already been processed
            if (storagerSQL.checkIfPlotIsNull(id)) {
@@ -118,6 +166,28 @@ public class ContentAnalyzer {
         return Processor.preprocess(text);
     }
 
+    private static void insertContinents() throws SQLException {
+        ArrayList<String> ids = getMovieIDs(); // Get the IDs of all the movies
+        for(String id : ids) { // for each film
+            System.out.println(i++ + ". Working on movie with ID: " + id);
+            // If continents is null then populate it, otherwise it has already been processed
+            if (storagerSQL.checkIfContinentsIsNull(id)) {
+                // Fetch the extended plot
+                String query = "SELECT `countries` FROM `all_movies` WHERE `id`=" + id;
+                ResultSet rs = storagerSQL.selectQuery(query);
+                rs.next();
+                String countries = rs.getString(1);
+                if (!countries.isEmpty()) { // There are no countries; Handles problem
+                    String continents = getContinents(countries);
+                    storagerSQL.insertContinents(id, continents);
+                    System.out.println("\nID: " + id + " Continents: " + continents + " Countries: " + countries);
+                }
+            } else {
+                System.out.println("Movie has been already parsed for continents!");
+            }
+        }
+    }
+
     /**
      * Main funtion that performs the content analysis
      * @param args None needed
@@ -125,7 +195,8 @@ public class ContentAnalyzer {
      */
     public static void main(String[] args) throws SQLException {
         //cleanAndInsertSemantics();
-        migrateFromMongoToMySQL();
+        //migrateFromMongoToMySQL();
+        insertContinents();
         if(!storagerSQL.closeConnection()) {
             System.out.println("Failed to close the connection!");
         }

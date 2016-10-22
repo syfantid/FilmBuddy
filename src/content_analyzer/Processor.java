@@ -20,7 +20,7 @@ public class Processor {
         stopwordsList = new ArrayList<>();
         lemmatizer =  new StanfordLemmatizer();
         try {
-            try(BufferedReader br = new BufferedReader(new FileReader("input\\stopwords.txt"))) {
+            try(BufferedReader br = new BufferedReader(new FileReader("input/stopwords.txt"))) {
                 String line = br.readLine();
 
                 while (line != null) {
