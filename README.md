@@ -20,3 +20,4 @@ Project for my thesis; Social Recommender System
 
 #### Installing SOLR: http://lucene.apache.org/solr/
 #### Installing Bootstrap: http://getbootstrap.com/getting-started/
+#### Installing Bootstrap Slider Plugin: https://github.com/seiyria/bootstrap-slider
