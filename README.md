@@ -22,3 +22,4 @@ Project for my thesis; Social Recommender System
 #### Installing Bootstrap: http://getbootstrap.com/getting-started/
 #### Installing Bootstrap Slider Plugin: https://github.com/seiyria/bootstrap-slider
 #### Installing MongoDB Driver for PHP: http://php.net/manual/en/mongodb.installation.pecl.php
+#### Installing Composer: https://www.digitalocean.com/community/tutorials/how-to-install-and-use-composer-on-ubuntu-14-04
