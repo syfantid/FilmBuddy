@@ -1,3 +1,9 @@
+<?php
+session_start();
+if(isset($_GET['submit'])) {
+    session_unset();
+}
+?>
 <!DOCTYPE html>
 
 <?php
@@ -8,22 +14,30 @@ require_once('constants.php');
 // make sure browsers see this page as utf-8 encoded HTML
 header('Content-Type: text/html; charset=utf-8');
 
-$rows = 9;
+$rows = 16;
 $start = 0;
 /* Get query anf filters */
 $query = isset($_REQUEST['q']) ? $_REQUEST['q'] : false;
 $genres = isset($_REQUEST['genre']) ? $_REQUEST['genre'] : array();
-$years = isset($_REQUEST['year']) ? $_REQUEST['year'] : "";
-$imdb = isset($_REQUEST['imdb']) ? $_REQUEST['imdb'] : "";
+$years = isset($_REQUEST['year']) ? $_REQUEST['year'] : array();
+if(!is_array($years)) {
+    $years = explode(',', $years);
+}
+$imdb = isset($_REQUEST['imdb']) ? $_REQUEST['imdb'] : array();
+if(!is_array($imdb)) {
+    $imdb = explode(',', $imdb);
+}
 $continents = isset($_REQUEST['continents']) ? $_REQUEST['continents'] : array();
 /* Keep original URL*/
 $urlQuery = $query;
+/*$noPageQuery = preg_replace($pattern, '', $query);*/
 /* Basic options for querying*/
 $options = array();
 /* File that includes all unique film genres */
 $filename = "files/unique_genres.txt";
 $allGenres = file($filename, FILE_IGNORE_NEW_LINES);
-$allContinents = array("Africa", "Asia", "Europe", "North America", "South America", "Oceania");
+/* Continents */
+const ALL_CONTINENTS = array("Africa", "Asia", "Europe", "North America", "South America", "Oceania");
 
 
 if ($query) {
@@ -33,60 +47,55 @@ if ($query) {
         $query = stripslashes($query);
     }
 
-    $url = formatSimpleQuery($query, $start, $rows);
-    // Add filters
-    if(!empty($genres)) {
-        $url = addGenreFilter($genres, $url);
-    }
-    if($years != "") {
-        $years = explode(',', $years);
-        $url = addYearFilter($years, $url);
-    }
-    if($imdb != "") {
-        $imdb = explode(',', $imdb);
-        $url = addRatingFilter($imdb, $url);
-    }
-    if(!empty($continents)) {
-        $url = addContinentFilter($continents, $url);
-    }
+    /* If the number of total results is not set yet, then make an extra file_get_contents call to identify the total
+    number of results*/
+    if(!isset($_SESSION['total'])) {
+        /*print_r("Setting session variables!");*/
+        $url = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
 
-    // Just to get the total number of objects returned
-    try {
-        $results = file_get_contents($url);
-    } catch (Exception $e) {
-        // in production you'd probably log or email this error to an admin
-        // and then show a special message to the user but for this example
-        // we're going to show the full exception
-        die("<html><head><title>SEARCH EXCEPTION</title><body><pre>{$e->__toString()}</pre></body></html>");
+        // Just to get the total number of objects returned
+        try {
+            $results = file_get_contents($url);
+        } catch (Exception $e) {
+            // in production you'd probably log or email this error to an admin
+            // and then show a special message to the user but for this example
+            // we're going to show the full exception
+            die("<html><head><title>SEARCH EXCEPTION</title><body><pre>{$e->__toString()}</pre></body></html>");
+        }
+        $results = json_decode($results, true);
+        $_SESSION['total'] = (int)$results['response']['numFound']; // The number of relevant movies found
+        /* Number of pages needed for all comments */
+        $_SESSION['totalPages'] = ceil($_SESSION['total'] / $rows);
+        $newSession = true;
+    } else {
+        $newSession = false;
     }
-    $results = json_decode($results,true);
-    $total = (int) $results['response']['numFound']; // The number of relevant movies found
-    /* Number of pages needed for all comments */
-    $totalPages = ceil($total / $rows);
 
     /* Set current page and offset from the first comment (depends on current page) */
-    if(isset($_GET['currentPage'])) {
+    if(isset($_GET['currentPage']) && !$newSession) {
         $currentPage = $_GET['currentPage'];
         /* Check if currentPage is within limits (In case the user tampers with the url)*/
         if ($currentPage < 1) {
             $currentPage = 1;
 
-        } elseif ($currentPage > $totalPages) {
-            $currentPage = $totalPages;
+        } elseif ($currentPage > $_SESSION['totalPages'] ) {
+            $currentPage = $_SESSION['totalPages'] ;
         }
         $start = ($currentPage - 1) * $rows; // Calculate the offset for the page
-        if ($currentPage == $totalPages) { // The rows number may change only for the last page
-            $rows = $total - $start;
+        if ($currentPage == $_SESSION['totalPages'] ) { // The rows number may change only for the last page
+            $rows = $_SESSION['total'] - $start;
         }
-    } else { // Uninitialized - First page results
+    } else { // Uninitialized - First page results or Page after filtering
         $currentPage = 1;
         $start = 0;
-        if ($currentPage == $totalPages) {
+        if ($currentPage == $_SESSION['totalPages'] ) {
             $start = ($currentPage - 1) * $rows; // Calculate the offset for the page
-            $rows = $total - $start;
+            $rows = $_SESSION['total'] - $start;
         }
     }
-    $results = false; //todo Avoid calling get_contents twice IMPORTANT!
+    $results = false;
+    /* Reformating query so that it takes into account the start and rows variables */
+    $url = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
 
     // in production code you'll always want to use a try /catch for any
     // possible exceptions emitted  by searching (i.e. connection
@@ -100,6 +109,45 @@ if ($query) {
         //todo Create a 404 problem page IMPORTANT!
         die("<html><head><title>SEARCH EXCEPTION</title><body><pre>{$e->__toString()}</pre></body></html>");
     }
+}
+
+function reformatLink($query, $years, $imdb, $genres, $continents) {
+    $link = $_SERVER['PHP_SELF'] . "?q=" . $query;
+    if(!empty($genres)) {
+        foreach ($genres as $genre) {
+            $link .= "&genre[]=" . $genre;
+        }
+    }
+    if(!empty($years)) {
+        $link .= "&year=" . $years[0] . "," . $years[1];
+    }
+    if(!empty($imdb)) {
+        $link .= "&imdb=" . $imdb[0] . "," . $imdb[1];
+    }
+    if(!empty($continents)) {
+        foreach ($continents as $continent) {
+            $link .= "&continent[]=" . $continent;
+        }
+    }
+    return $link;
+}
+
+function reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents) {
+    $url = formatSimpleQuery($query, $start, $rows);
+    // Add filters
+    if(!empty($genres)) {
+        $url = addGenreFilter($genres, $url);
+    }
+    if(!empty($years)) {
+        $url = addYearFilter($years, $url);
+    }
+    if(!empty($imdb)) {
+        $url = addRatingFilter($imdb, $url);
+    }
+    if(!empty($continents)) {
+        $url = addContinentFilter($continents, $url);
+    }
+    return $url;
 }
 
 function formatSimpleQuery($query,$start,$rows) {
@@ -118,8 +166,9 @@ function addFilter($extra, $url) {
 function addGenreFilter($genres, $url) {
     $genresString = "";
     foreach ($genres as $genre) {
-        $genresString .= " " . $genre;
+        $genresString .= $genre . "+";
     }
+    $genresString = substr_replace($genresString ,"",-1);
     $extra = array("fq" => "genre:" . $genresString);
     return addFilter($extra, $url);
 }
@@ -127,8 +176,13 @@ function addGenreFilter($genres, $url) {
 function addContinentFilter($continents, $url) {
     $continentsString = "";
     foreach ($continents as $continent) {
-        $continentsString .= " " . $continent;
+        if($continent == "North America" || $continent == "South America") { //todo Change names
+            $continentsString .= "\"" . $continent . "\"" . "+";
+        } else {
+            $continentsString .= $continent . "+";
+        }
     }
+    $continentsString = substr_replace($continentsString ,"",-1);
     $extra = array("fq" => "continents:" . $continentsString);
     return addFilter($extra, $url);
 }
@@ -157,15 +211,15 @@ function addRatingFilter($imdb, $url) {
 
     <title>Film Buddy: A Social Movie Recommender Engine using Semantics</title>
 
-    <!-- Bootstrap Core CSS -->
-    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
-
     <!-- Custom CSS -->
     <link href="assets/css/3-col-portfolio.css" rel="stylesheet">
     <link href="assets/css/simple-sidebar.css" rel="stylesheet">
 
     <!-- Bootstrap Slider CSS-->
     <link href="assets/css/bootstrap-slider.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Core CSS -->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -311,7 +365,7 @@ function addRatingFilter($imdb, $url) {
                                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Continents<b class="caret"></b></a>
                                         <ul class="dropdown-menu">
                                             <?php
-                                            foreach($allContinents as $continent) {
+                                            foreach(ALL_CONTINENTS as $continent) {
                                                 ?>
                                                 <li><a href="#" class="small" data-value=<?php echo $continent?>
                                                     tabIndex="-1"><input type="checkbox" name="continents[]" id="continents"
@@ -330,16 +384,7 @@ function addRatingFilter($imdb, $url) {
                     </li>
                     <!--End of film continent filter-->
 
-                    <li>
-                        <a href="#">About</a>
-                    </li>
-                    <li>
-                        <a href="#">Services</a>
-                    </li>
-                    <li>
-                        <a href="#">Contact</a>
-                    </li>
-                    <input type="submit" class="btn btn-default btn-md" role="button" value="Apply magic!"/>
+                    <input type="submit" class="btn btn-default btn-md" role="button" name="submit" value="Apply magic!"/>
                 </form>
                 <!-- /#form-wrapper -->
             </ul>
@@ -351,7 +396,7 @@ function addRatingFilter($imdb, $url) {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
-                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Filters</a>
                         <!-- Page Header -->
                         <div class="row">
                             <div class="col-lg-12">
@@ -366,33 +411,27 @@ function addRatingFilter($imdb, $url) {
                         // Display results
                         if ($results) {
                         $results = json_decode($results,true);
-                        $i = 0; // Results printed so far counter
                         ?><div class="container"><?php
                         foreach ($results['response']['docs'] as $doc) {
-                            if($i%3==0) {
-                                echo "<div class='row'>";
-                            } ?>
-                            <div class="col-md-4 portfolio-item">
-                                <a href="#">
+                            ?>
+                            <div class="col-xs-6 col-sm-4 col-md-4 col-lg-3 portfolio-item">
+                                <?php $movieURL = "http://" . DBHOST . ":" . WEBPORT . "/FilmBuddy/web/movie.php?id=" . $doc['id'];?>
+                                <a href="<?php echo $movieURL;?>">
                                     <?php if($doc['icon'] == "N/A" || !strpos(@get_headers(urldecode($doc['icon']))[0],"200")) { ?>
-                                        <img class="img-responsive" src="images/keep-calm-but-sorry-no-poster.jpg"
-                                             alt="Movie poster thumbnail"> <?php
+                                        <img class="img-responsive height-adjust" src="images/keep-calm-but-sorry-no-poster.jpg"
+                                             alt="Movie poster thumbnail" width="180" height="255"> <?php
                                     } else { ?>
-                                        <img class="img-responsive" src="<?php echo $doc['icon']; ?>"
-                                             alt="Movie poster thumbnail"> <?php
+                                        <img class="img-responsive height-adjust" src="<?php echo $doc['icon']; ?>"
+                                             alt="Movie poster thumbnail"  width="180" height="255"> <?php
                                     }
                                     ?>
                                 </a>
                                 <h3>
-                                    <a href="#"><?php echo $doc['title'][0]; ?></a>
+                                    <a href="<?php echo $movieURL;?>"><?php echo $doc['title'][0]; ?></a>
                                 </h3>
                                 <p><?php echo $doc['genre']; ?></p>
                             </div>
                             <?php
-                            if($i%3 == 2) {
-                                echo "</div>";
-                            }
-                            $i++;
                         }
                         ?>
                         </div>
@@ -404,27 +443,29 @@ function addRatingFilter($imdb, $url) {
                         <div class="row text-center">
                             <div class="col-lg-12">
                                 <?php
+                                /* URL for redirection */
+                                $url = reformatLink($urlQuery, $years, $imdb, $genres, $continents);
 
                                 /* Show previous pages' links */
                                 if ($currentPage > 1) { // First page doesn't have a previous page
-                                    echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=1' class='btn btn-default btn-lg' role='button'>First</a> "; // Link to first page
+                                    echo " <a href='$url&currentPage=1' class='btn btn-default btn-lg' role='button'>First</a> "; // Link to first page
                                     $previousPage = $currentPage - 1; // Previous page number
-                                    echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$previousPage' class='btn btn-default btn-lg' role='button'>Previous</a> "; // Link to previous page
-                                    if ($currentPage == $totalPages) {
+                                    echo " <a href='$url&currentPage=$previousPage' class='btn btn-default btn-lg' role='button'>Previous</a> "; // Link to previous page
+                                    if ($currentPage == $_SESSION['totalPages'] ) {
                                         echo " <span class='btn btn-default btn-lg disabled' role='button'>Next</span> ";
                                         echo " <span class='btn btn-default btn-lg disabled' role='button'>Last</span> ";
                                     }
                                 }
 
                                 /* Show next pages' links */
-                                if ($currentPage != $totalPages) { // Last page doesn't have a next page
+                                if ($currentPage != $_SESSION['totalPages'] ) { // Last page doesn't have a next page
                                     if ($currentPage == 1) {
                                         echo " <span class='btn btn-default btn-lg disabled'>First</span> ";
                                         echo " <span class='btn btn-default btn-lg disabled'>Previous</span> ";
                                     }
                                     $nextPage = $currentPage + 1; // Next page number
-                                    echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$nextPage' class='btn btn-default btn-lg' role='button'>Next</a> "; // Link to next page
-                                    echo " <a href='{$_SERVER['PHP_SELF']}?q=$urlQuery&currentPage=$totalPages' class='btn btn-default btn-lg' role='button'>Last</a>"; // Link to last page
+                                    echo " <a href='$url&currentPage=$nextPage' class='btn btn-default btn-lg' role='button'>Next</a> "; // Link to next page
+                                    echo " <a href='$url&currentPage={$_SESSION['totalPages']} ' class='btn btn-default btn-lg' role='button'>Last</a>"; // Link to last page
                                 }
                                 ?>
                             </div>

@@ -1,6 +1,8 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -68,7 +70,6 @@
 
     <!-- Page Content -->
     <div class="container">
-
         <div class="row">
             <div class="col-lg-12 text-center">
                 <h1>Film Buddy</h1>
