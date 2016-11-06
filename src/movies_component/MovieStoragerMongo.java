@@ -34,7 +34,7 @@ public class MovieStoragerMongo {
     public MovieStoragerMongo(String host, int port) {
         MongoClient mongoClient = new MongoClient(host, port);
         _db = mongoClient.getDatabase("movies_component");
-        _coll_name_movies = "all_movies";
+        _coll_name_movies = "all_movies_new";
     }
 
     /**
@@ -45,6 +45,7 @@ public class MovieStoragerMongo {
     private void addMovie(String id, String imdbID) throws OMDBException {
         MongoCollection<Document> coll = _db.getCollection(_coll_name_movies);
         String json = findMovie(imdbID);
+        System.out.println(json);
         
         if(!json.isEmpty()) {
             Document doc = new Document(_MOVIE_JSON_, Document.parse(json))
@@ -62,7 +63,7 @@ public class MovieStoragerMongo {
     private String findMovie(String imdbID) throws OMDBException {
         OmdbApi omdb = new OmdbApi();
         Gson gson = new Gson();
-        OmdbVideoFull result = omdb.getInfo(new OmdbBuilder().setImdbId(imdbID).setPlotLong().build());
+        OmdbVideoFull result = omdb.getInfo(new OmdbBuilder().setImdbId(imdbID).setPlotLong().setTomatoesOn().build());
         return gson.toJson(result);
     }
 
@@ -102,10 +103,10 @@ public class MovieStoragerMongo {
                 try {
                     mongoConnector.addMovie(id, imdbid); // Store movie's metadata to MongoDB
                 } catch (OMDBException e) { // In case the movie cannot be found in OMDb
-                    storagerSQL.deleteMovie(id);
+                    //storagerSQL.deleteMovie(id);
                 }
             } else {
-                storagerSQL.deleteMovie(id);
+                //storagerSQL.deleteMovie(id);
             }
         }
         if(!storagerSQL.closeConnection()) {
