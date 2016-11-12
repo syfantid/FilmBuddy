@@ -100,6 +100,46 @@
     background: none;
 }
 
+#filters {
+    margin-left: 15px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+#filters>li>a {
+    padding: 3px 20px 3px 0px;
+}
+
+#slider_li {
+    padding: 0 20px 0 5px;
+}
+
+.sidebar-nav li .tooltip-inner {
+    text-indent: 0;
+}
+
+#slider_li .tooltip-inner {
+    background-color: #0b8bcc;
+}
+
+#slider_li .tooltip-arrow {
+    border-top-color: #0b8bcc;
+}
+
+#submit_button {
+    margin-top: 20px;
+}
+
+.scrollable-menu {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
+
+#check {
+    color: #0b8bcc;
+}
+
 @media(min-width:768px) {
     #wrapper {
         padding-left: 250px;

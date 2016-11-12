@@ -2,6 +2,16 @@
 
 <?php
 
+function Redirect($url, $permanent = false)
+{
+    if (headers_sent() === false)
+    {
+        header('Location: ' . $url, true, ($permanent === true) ? 301 : 302);
+    }
+
+    exit();
+}
+
 require_once('constants.php');
 require_once('Connectify.php');
 
@@ -23,10 +33,23 @@ if ($movieID) { // If the query is correct
     $movie = $mongo->getMovie($movieID);
     if($movie == null) {
         //todo Create a 404 problem page IMPORTANT!
-        die("<html><head><title>SEARCH EXCEPTION</title><body>" . phpinfo() . "</body></html>");
+        Redirect("./404.php");
     }
     $imdbURL = "http://www.imdb.com/title/" . $movie['imdbID'];
+} else {
+    //todo Create a 404 problem page IMPORTANT!
+    Redirect("./404.php");
 }
+
+function arrayToString($array) {
+    $arrayString = "";
+    foreach ($array as $item) {
+        $arrayString .= $item . " ";
+    }
+    return $arrayString;
+}
+
+
 ?>
 <html lang="en">
 
@@ -177,6 +200,14 @@ if ($movieID) { // If the query is correct
                         <i class="fa fa-clock-o" aria-hidden="true"></i>
                         <span><?php echo $movie['runtime'];?></span>
                     </li>
+                    <li class="detailWrapper">
+                        <i class="fa fa-volume-up" aria-hidden="true"></i>
+                        <span><?php echo arrayToString($movie['languages']);?></span>
+                    </li>exit
+                    <li class="detailWrapper">
+                        <i class="fa fa-globe" aria-hidden="true"></i>
+                        <span><?php echo arrayToString($movie['countries']);?></span>
+                    </li>
                     <?php
                     if($movie['awards']!="N/A") { ?>
                         <li class="detailWrapper">
@@ -185,7 +216,7 @@ if ($movieID) { // If the query is correct
                         </li>
                     <?php
                     } ?>
-                    <h4>Writer</h4>
+                    <h4>Writers</h4>
                     <li class="detailWrapper">
                         <i class="fa fa-pencil" aria-hidden="true"></i>
                         <span><?php echo $movie['writer'];?></span>
@@ -246,7 +277,7 @@ if ($movieID) { // If the query is correct
         <footer>
             <div class="row">
                 <div class="col-lg-12">
-                    <p>Copyright &copy; Your Website 2014</p>
+                    <p>Copyright &copy; Film Buddy 2016</p>
                 </div>
             </div>
             <!-- /.row -->

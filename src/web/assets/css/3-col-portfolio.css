@@ -10,7 +10,7 @@ body {
 }
 
 .portfolio-item {
-    margin-bottom: 35px;
+    margin-bottom: 50px;
 }
 
 footer {
@@ -28,8 +28,85 @@ footer {
 
 img.img-responsive.height-adjust {
     height: 255px; !important;
+    border:5px solid #c6c6c6;
+    vertical-align: top;
 }
 
 h3 a {
-    font-size: .5em;
+    font-size: .4em;
+}
+
+#genre {
+    color: #4E4E4E;
+    font-size: .8em;
+}
+
+#highlights {
+    color: #0e68c9;
+    font-size: .8em;
+}
+
+figure .exact {
+    display: table;
+}
+
+/* Blur + Gray Scale */
+.hover10 figure img {
+    -webkit-filter: grayscale(0) blur(0);
+    filter: grayscale(0) blur(0);
+    -webkit-transition: .3s ease-in-out;
+    transition: .3s ease-in-out;
+}
+.hover10 figure:hover img {
+    -webkit-filter: blur(3px);
+    filter: blur(3px);
+}
+
+figcaption {
+    color: white;
+    height: 255;
+    width: 180;
+    left: 0;
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+    -webkit-transition: all 300ms;
+    -moz-transition: all 300ms;
+    transition: all 300ms;
+    -webkit-transition-delay: 100ms;
+    -moz-transition-delay: 100ms;
+    transition-delay: 100ms;
+    padding-top: 40px;
+    display: block;
+    align-content: center;
+}
+
+figure {
+    width: 180px; !important;
+    margin: 20px; !important;
+}
+
+figure:hover figcaption {
+    opacity: 1;
+}
+
+figure figcaption .rating {
+    margin-bottom: 20px;
+}
+figure figcaption h4 {
+    font-size: 0.5em;
+    position: relative;
+    width: 100%;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    font-weight: bold;
+    color: #fff;
+}
+
+
+/* --------------------------------------------------------------------------- */
+.browse-movie-wrap {
+    margin-bottom: 15px;
 }

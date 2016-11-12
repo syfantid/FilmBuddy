@@ -21,7 +21,7 @@ class Connectify {
     function __construct($host, $port)
     {
         /*$this->manager = new MongoDB\Driver\Manager("mongodb://$host:$port");*/
-        $this->collection = (new MongoDB\Client)->movies_component->all_movies;
+        $this->collection = (new MongoDB\Client)->movies_component->all_movies_new;
     }
 
     function getMovie($movieID) {
@@ -32,6 +32,17 @@ class Connectify {
             return $result['movie'];
         } else {
             return null;
+        }
+    }
+
+    function getPosterURL($movieID) {
+        $result = $this->collection->findOne([
+            'movie_id' => $movieID
+        ]);
+        if($result != null) {
+            return $result['movie']['poster'];
+        } else {
+            return "N/A";
         }
     }
 

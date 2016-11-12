@@ -9,6 +9,7 @@ if(isset($_GET['submit'])) {
 <?php
 
 require_once('constants.php');
+require_once('Connectify.php');
 
 // SOLR instance is already running
 // make sure browsers see this page as utf-8 encoded HTML
@@ -37,7 +38,9 @@ $options = array();
 $filename = "files/unique_genres.txt";
 $allGenres = file($filename, FILE_IGNORE_NEW_LINES);
 /* Continents */
-const ALL_CONTINENTS = array("Africa", "Asia", "Europe", "North America", "South America", "Oceania");
+const ALL_CONTINENTS = array("Africa", "Asia", "Europe", "N.America", "S.America", "Oceania");
+
+$mongo = new Connectify(DBHOST, MONGOPORT);
 
 
 if ($query) {
@@ -60,7 +63,7 @@ if ($query) {
             // in production you'd probably log or email this error to an admin
             // and then show a special message to the user but for this example
             // we're going to show the full exception
-            die("<html><head><title>SEARCH EXCEPTION</title><body><pre>{$e->__toString()}</pre></body></html>");
+            Redirect("./404.php");
         }
         $results = json_decode($results, true);
         $_SESSION['total'] = (int)$results['response']['numFound']; // The number of relevant movies found
@@ -96,7 +99,6 @@ if ($query) {
     $results = false;
     /* Reformating query so that it takes into account the start and rows variables */
     $url = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
-
     // in production code you'll always want to use a try /catch for any
     // possible exceptions emitted  by searching (i.e. connection
     // problems or a query parsing error)
@@ -106,9 +108,18 @@ if ($query) {
         // in production you'd probably log or email this error to an admin
         // and then show a special message to the user but for this example
         // we're going to show the full exception
-        //todo Create a 404 problem page IMPORTANT!
-        die("<html><head><title>SEARCH EXCEPTION</title><body><pre>{$e->__toString()}</pre></body></html>");
+        Redirect("./404.php");
     }
+}
+
+function Redirect($url, $permanent = false)
+{
+    if (headers_sent() === false)
+    {
+        header('Location: ' . $url, true, ($permanent === true) ? 301 : 302);
+    }
+
+    exit();
 }
 
 function reformatLink($query, $years, $imdb, $genres, $continents) {
@@ -126,7 +137,7 @@ function reformatLink($query, $years, $imdb, $genres, $continents) {
     }
     if(!empty($continents)) {
         foreach ($continents as $continent) {
-            $link .= "&continent[]=" . $continent;
+            $link .= "&continents[]=" . $continent;
         }
     }
     return $link;
@@ -152,7 +163,8 @@ function reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continent
 
 function formatSimpleQuery($query,$start,$rows) {
     $url = "http://" . SOLRHOST . ":" . SOLRPORT . SOLRNAME . "/movies/select?";
-    $options = array("df"=>"semantics_plot","indent"=>"on","q"=>$query,"rows"=>$rows,"start"=>$start,"wt"=>"json");
+    $options = array("df"=>"semantics_plot", "hl.fl"=>"semantics_plot", "hl"=> "on", "hl.snippets"=>3, "indent"=>"on",
+        "q"=>$query,"rows"=>$rows,"start"=>$start,"wt"=>"json");
     $url .= http_build_query($options,'','&');
     return $url;
 }
@@ -174,15 +186,12 @@ function addGenreFilter($genres, $url) {
 }
 
 function addContinentFilter($continents, $url) {
-    $continentsString = "";
+    $continentsString = "(";
     foreach ($continents as $continent) {
-        if($continent == "North America" || $continent == "South America") { //todo Change names
-            $continentsString .= "\"" . $continent . "\"" . "+";
-        } else {
-            $continentsString .= $continent . "+";
-        }
+        $continentsString .= $continent . " OR ";
     }
-    $continentsString = substr_replace($continentsString ,"",-1);
+    $continentsString = substr($continentsString, 0, -4);
+    $continentsString .= ")";
     $extra = array("fq" => "continents:" . $continentsString);
     return addFilter($extra, $url);
 }
@@ -195,6 +204,19 @@ function addYearFilter($years, $url) {
 function addRatingFilter($imdb, $url) {
     $extra = array("fq" => "imdb_rating:[" . $imdb[0] . " TO " . $imdb[1] . "]");
     return addFilter($extra, $url);
+}
+
+function get_highlights($snippets) {
+    $interests = array();
+    if(!empty($snippets)) {
+        foreach ($snippets as $snippet) {
+            preg_match_all("/!([a-z]*)!/", $snippet, $snippet_highlights);
+            /*print_r($snippet_highlights);*/
+            $interests = array_merge($interests,array_map("unserialize", array_map("serialize", $snippet_highlights[1])));
+        }
+
+    }
+    return array_unique($interests);
 }
 ?>
 
@@ -293,15 +315,20 @@ function addRatingFilter($imdb, $url) {
                                 <div class="col-lg-12">
                                     <div class="button-group">
                                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genres <b class="caret"></b></a>
-                                        <ul class="dropdown-menu">
+                                        <ul class="dropdown-menu scrollable-menu" id="filters">
                                             <?php
                                             foreach($allGenres as $genre) {
                                                 ?>
-                                                <li><a href="#" class="small" data-value=<?php echo $genre?>
-                                                    tabIndex="-1"><input type="checkbox" name="genre[]" id="genre"
-                                                                         value="<?php echo $genre;?>"
+                                                <li>
+                                                    <a href="#" class="small" data-value=<?php echo $genre?>
+                                                    tabIndex="-1">
+                                                        <input type="checkbox" name="genre[]" id="genre"
+                                                               value="<?php echo $genre;?>"
                                                             <?php if(in_array($genre, $genres)) echo "checked='checked'"; ?>
-                                                        />&nbsp;<?php echo $genre ?></a></li>
+                                                        />
+                                                        &nbsp;<?php echo $genre ?>
+                                                    </a>
+                                                </li>
                                                 <?php
                                             }
                                             ?>
@@ -321,11 +348,11 @@ function addRatingFilter($imdb, $url) {
                                 <div class="col-lg-12">
                                     <div class="button-group">
                                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Year <b class="caret"></b></a>
-                                        <ul class="dropdown-menu">
-                                            <li><input id="year" name="year" type="text" class="span2" value="" data-slider-min="1902"
+                                        <ul class="dropdown-menu" id="filters">
+                                            <li id="slider_li"><input id="year" name="year" type="text" class="span2" value="" data-slider-min="1900"
                                                        data-slider-max="2016" data-slider-step="5"
                                                        data-slider-value="[<?php if(!empty($years)) echo $years[0];
-                                                       else echo "1902";?>,<?php if(!empty($years)) echo $years[1];
+                                                       else echo "1900";?>,<?php if(!empty($years)) echo $years[1];
                                                        else echo "2016";?>]"/></li>
                                         </ul>
                                     </div>
@@ -342,8 +369,8 @@ function addRatingFilter($imdb, $url) {
                                 <div class="col-lg-12">
                                     <div class="button-group">
                                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">IMDb Rating <b class="caret"></b></a>
-                                        <ul class="dropdown-menu">
-                                            <li><input id="imdb" name="imdb" type="text" class="span2" value="" data-slider-min="0"
+                                        <ul class="dropdown-menu" id="filters">
+                                            <li id="slider_li"><input id="imdb" name="imdb" type="text" class="span2" value="" data-slider-min="0"
                                                        data-slider-max="10" data-slider-step="0.1"
                                                        data-slider-value="[<?php if(!empty($imdb)) echo $imdb[0];
                                                        else echo "0";?>,<?php if(!empty($imdb)) echo $imdb[1];
@@ -363,12 +390,12 @@ function addRatingFilter($imdb, $url) {
                                 <div class="col-lg-12">
                                     <div class="button-group">
                                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Continents<b class="caret"></b></a>
-                                        <ul class="dropdown-menu">
+                                        <ul class="dropdown-menu scrollable-menu" id="filters">
                                             <?php
                                             foreach(ALL_CONTINENTS as $continent) {
                                                 ?>
                                                 <li><a href="#" class="small" data-value=<?php echo $continent?>
-                                                    tabIndex="-1"><input type="checkbox" name="continents[]" id="continents"
+                                                    tabIndex="-1"><input type="checkbox" id="check" name="continents[]" id="continents"
                                                                          value="<?php echo $continent;?>"
                                                             <?php if(in_array($continent, $continents)) echo "checked='checked'"; ?>
                                                         />&nbsp;<?php echo $continent ?></a></li>
@@ -384,7 +411,7 @@ function addRatingFilter($imdb, $url) {
                     </li>
                     <!--End of film continent filter-->
 
-                    <input type="submit" class="btn btn-default btn-md" role="button" name="submit" value="Apply magic!"/>
+                    <li><input type="submit" class="btn btn-primary" id="submit_button" role="button" name="submit" value="Apply magic!"/></li>
                 </form>
                 <!-- /#form-wrapper -->
             </ul>
@@ -396,7 +423,7 @@ function addRatingFilter($imdb, $url) {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
-                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Filters</a>
+                        <a href="#menu-toggle" class="btn btn-primary" id="menu-toggle">Filters</a>
                         <!-- Page Header -->
                         <div class="row">
                             <div class="col-lg-12">
@@ -410,66 +437,116 @@ function addRatingFilter($imdb, $url) {
                         <?php
                         // Display results
                         if ($results) {
-                        $results = json_decode($results,true);
-                        ?><div class="container"><?php
-                        foreach ($results['response']['docs'] as $doc) {
+                            $results = json_decode($results,true);
                             ?>
-                            <div class="col-xs-6 col-sm-4 col-md-4 col-lg-3 portfolio-item">
-                                <?php $movieURL = "http://" . DBHOST . ":" . WEBPORT . "/FilmBuddy/web/movie.php?id=" . $doc['id'];?>
-                                <a href="<?php echo $movieURL;?>">
-                                    <?php if($doc['icon'] == "N/A" || !strpos(@get_headers(urldecode($doc['icon']))[0],"200")) { ?>
-                                        <img class="img-responsive height-adjust" src="images/keep-calm-but-sorry-no-poster.jpg"
-                                             alt="Movie poster thumbnail" width="180" height="255"> <?php
-                                    } else { ?>
-                                        <img class="img-responsive height-adjust" src="<?php echo $doc['icon']; ?>"
-                                             alt="Movie poster thumbnail"  width="180" height="255"> <?php
-                                    }
+                            <div class="container"><?php
+                                foreach ($results['response']['docs'] as $doc) {
+                                    $highlights = get_highlights($results['highlighting'][$doc['id']]['semantics_plot']);
                                     ?>
-                                </a>
-                                <h3>
-                                    <a href="<?php echo $movieURL;?>"><?php echo $doc['title'][0]; ?></a>
-                                </h3>
-                                <p><?php echo $doc['genre']; ?></p>
-                            </div>
-                            <?php
-                        }
-                        ?>
-                        </div>
+
+                                    <!--<div class="browse-movie-wrap col-xs-10 col-sm-5">
+                                        <a href="https://yts.ag/movie/mechanic-resurrection-2016" class="browse-movie-link">
+                                            <figure>
+                                                <img class="img-responsive" src="/assets/images/movies/mechanic_resurrection_2016/medium-cover.jpg" alt="Mechanic: Resurrection (2016) download" width="210" height="315">
+                                                <figcaption class="hidden-xs hidden-sm">
+                                                    <span class="icon-star"></span>
+                                                    <h4 class="rating">5.7 / 10</h4>
+                                                    <h4>Action</h4>
+                                                    <h4>Crime</h4>
+                                                    <span class="button-green-download2-big">View Details</span>
+                                                </figcaption>
+                                            </figure>
+                                        </a>
+                                        <div class="browse-movie-bottom">
+                                            <a href="https://yts.ag/movie/mechanic-resurrection-2016" class="browse-movie-title">Mechanic: Resurrection</a>
+                                            <div class="browse-movie-year">2016</div>
+                                            <div class="browse-movie-tags">
+                                                <a href="https://yts.ag/torrent/download/15D0FFD08EA199E877886437DDCBC9A36C4EB026.torrent" rel="nofollow" title="Download Mechanic: Resurrection 720p Torrent">720p</a>
+                                            </div>
+                                        </div>
+                                    </div>-->
 
 
-                        <hr>
+                                    <div class="browse-movie-wrap col-xs-7 col-sm-4 col-md-3 col-lg-3 portfolio-item hover10">
+                                        <?php $movieURL = "http://" . DBHOST . ":" . WEBPORT . "/FilmBuddy/web/movie.php?id=" . $doc['id'];?>
 
-                        <!-- Pagination -->
-                        <div class="row text-center">
-                            <div class="col-lg-12">
-                                <?php
-                                /* URL for redirection */
-                                $url = reformatLink($urlQuery, $years, $imdb, $genres, $continents);
+                                            <figure class="exact">
+                                                <a href="<?php echo $movieURL;?>">
+                                                <?php if($doc['icon'] == "N/A" || !strpos(@get_headers(urldecode($doc['icon']))[0],"200")) {
+                                                    $poster = $mongo->getPosterURL($doc['id']);
+                                                    if($poster != "N/A") {?>
+                                                        <img class="img-responsive height-adjust" src="<?php echo $poster;?>"
+                                                         alt="Movie poster thumbnail" width="180" height="255"><?php
+                                                    } else { ?>
+                                                        <img class="img-responsive height-adjust"
+                                                             src="images/keep-calm-but-sorry-no-poster.jpg"
+                                                             alt="Movie poster thumbnail" width="180"
+                                                             height="255"> <?php
+                                                    }
+                                                } else { ?>
+                                                    <img class="img-responsive height-adjust" src="<?php echo $doc['icon']; ?>"
+                                                         alt="Movie poster thumbnail"  width="180" height="255"> <?php
+                                                }
+                                                ?>
+                                                <figcaption class="hidden-xs hidden-sm">
+                                                    <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                                                    <h4 class="rating"><?php echo $doc['imdb_rating'];?>/10</h4>
+                                                    <h4><?php echo $doc['genre'];?></h4>
+                                                </figcaption>
+                                                </a>
+                                            </figure>
 
-                                /* Show previous pages' links */
-                                if ($currentPage > 1) { // First page doesn't have a previous page
-                                    echo " <a href='$url&currentPage=1' class='btn btn-default btn-lg' role='button'>First</a> "; // Link to first page
-                                    $previousPage = $currentPage - 1; // Previous page number
-                                    echo " <a href='$url&currentPage=$previousPage' class='btn btn-default btn-lg' role='button'>Previous</a> "; // Link to previous page
-                                    if ($currentPage == $_SESSION['totalPages'] ) {
-                                        echo " <span class='btn btn-default btn-lg disabled' role='button'>Next</span> ";
-                                        echo " <span class='btn btn-default btn-lg disabled' role='button'>Last</span> ";
-                                    }
-                                }
-
-                                /* Show next pages' links */
-                                if ($currentPage != $_SESSION['totalPages'] ) { // Last page doesn't have a next page
-                                    if ($currentPage == 1) {
-                                        echo " <span class='btn btn-default btn-lg disabled'>First</span> ";
-                                        echo " <span class='btn btn-default btn-lg disabled'>Previous</span> ";
-                                    }
-                                    $nextPage = $currentPage + 1; // Next page number
-                                    echo " <a href='$url&currentPage=$nextPage' class='btn btn-default btn-lg' role='button'>Next</a> "; // Link to next page
-                                    echo " <a href='$url&currentPage={$_SESSION['totalPages']} ' class='btn btn-default btn-lg' role='button'>Last</a>"; // Link to last page
+                                        <h3>
+                                            <a href="<?php echo $movieURL;?>"><?php echo $doc['title'][0]; ?></a>
+                                        </h3>
+                                        <p id="genre"><?php echo $doc['genre']; ?></p>
+                                        <p id="highlights">Because of your interest in:
+                                        <?php
+                                        foreach (array_values($highlights) as $highlight) {
+                                            echo $highlight . " ";
+                                        }
+                                        ?>
+                                        </p>
+                                    </div>
+                                    <?php
                                 }
                                 ?>
                             </div>
-                        </div>
+
+
+                            <hr>
+
+                            <!-- Pagination -->
+                            <div class="row text-center">
+                                <div class="col-lg-12">
+                                    <?php
+                                    /* URL for redirection */
+                                    $url = reformatLink($urlQuery, $years, $imdb, $genres, $continents);
+
+                                    /* Show previous pages' links */
+                                    if ($currentPage > 1) { // First page doesn't have a previous page
+                                        echo " <a href='$url&currentPage=1' class='btn btn-primary btn-lg' role='button'>First</a> "; // Link to first page
+                                        $previousPage = $currentPage - 1; // Previous page number
+                                        echo " <a href='$url&currentPage=$previousPage' class='btn btn-primary btn-lg' role='button'>Previous</a> "; // Link to previous page
+                                        if ($currentPage == $_SESSION['totalPages'] ) {
+                                            echo " <span class='btn btn-primary btn-lg disabled' role='button'>Next</span> ";
+                                            echo " <span class='btn btn-primary btn-lg disabled' role='button'>Last</span> ";
+                                        }
+                                    }
+
+                                    /* Show next pages' links */
+                                    if ($currentPage != $_SESSION['totalPages'] ) { // Last page doesn't have a next page
+                                        if ($currentPage == 1) {
+                                            echo " <span class='btn btn-primary btn-lg disabled'>First</span> ";
+                                            echo " <span class='btn btn-primary btn-lg disabled'>Previous</span> ";
+                                        }
+                                        $nextPage = $currentPage + 1; // Next page number
+                                        echo " <a href='$url&currentPage=$nextPage' class='btn btn-primary btn-lg' role='button'>Next</a> "; // Link to next page
+                                        echo " <a href='$url&currentPage={$_SESSION['totalPages']} ' class='btn btn-primary btn-lg' role='button'>Last</a>"; // Link to last page
+                                    }
+                                    ?>
+                                </div>
+                            </div>
                         <!-- /.row --> <?php
                         } ?>
                         <hr>
@@ -511,16 +588,40 @@ function addRatingFilter($imdb, $url) {
         });
     </script>
 
-    <!-- Slider Functionality Script-->
+    <!-- Slider Functionality Script for tooltips-->
     <script>
-        $("#year").slider({});
         $("#year").slider({
             tooltip: 'always'
         });
 
-        $("#imdb").slider({});
         $("#imdb").slider({
             tooltip: 'always'
+        });
+    </script>
+
+    <!-- Javascript for dropdown menus -->
+    <script>
+        var options = [];
+
+        $( '.dropdown-menu a' ).on( 'click', function( event ) {
+
+            var $target = $( event.currentTarget ),
+                val = $target.attr( 'data-value' ),
+                $inp = $target.find( 'input' ),
+                idx;
+
+            if ( ( idx = options.indexOf( val ) ) > -1 ) {
+                options.splice( idx, 1 );
+                setTimeout( function() { $inp.prop( 'checked', false ) }, 0);
+            } else {
+                options.push( val );
+                setTimeout( function() { $inp.prop( 'checked', true ) }, 0);
+            }
+
+            $( event.target ).blur();
+
+            console.log( options );
+            return false;
         });
     </script>
 </body>
