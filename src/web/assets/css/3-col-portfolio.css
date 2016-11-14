@@ -50,6 +50,9 @@ figure .exact {
     display: table;
 }
 
+.hover10 figure {
+    background: #7a7a7a;
+}
 /* Blur + Gray Scale */
 .hover10 figure img {
     -webkit-filter: grayscale(0) blur(0);
@@ -60,12 +63,16 @@ figure .exact {
 .hover10 figure:hover img {
     -webkit-filter: blur(3px);
     filter: blur(3px);
+    opacity: 0.5;
 }
 
 figcaption {
+    display: table-caption;
+    caption-side: top;
     color: white;
-    height: 255;
-    width: 180;
+    height: 255px;
+    width: 75%;
+    text-align: center;
     left: 0;
     opacity: 0;
     position: absolute;
@@ -79,11 +86,11 @@ figcaption {
     -moz-transition-delay: 100ms;
     transition-delay: 100ms;
     padding-top: 40px;
-    display: block;
     align-content: center;
 }
 
 figure {
+    display: table;
     width: 180px; !important;
     margin: 20px; !important;
 }
@@ -93,18 +100,22 @@ figure:hover figcaption {
 }
 
 figure figcaption .rating {
-    margin-bottom: 20px;
+    margin-bottom: 1em;
 }
 figure figcaption h4 {
-    font-size: 0.5em;
+    font-size: 1.2em;
     position: relative;
     width: 100%;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding-left: 30px !important;
+    padding-right: 30px !important;
     font-weight: bold;
     color: #fff;
 }
 
+.glyphicon.glyphicon-star {
+    font-size: 2em;
+    color: #0b8bcc;
+}
 
 /* --------------------------------------------------------------------------- */
 .browse-movie-wrap {

@@ -32,13 +32,32 @@ if ($movieID) { // If the query is correct
 
     $movie = $mongo->getMovie($movieID);
     if($movie == null) {
-        //todo Create a 404 problem page IMPORTANT!
-        Redirect("./404.php");
+
     }
     $imdbURL = "http://www.imdb.com/title/" . $movie['imdbID'];
+    $categories = getCategories($movieID);
 } else {
-    //todo Create a 404 problem page IMPORTANT!
     Redirect("./404.php");
+}
+
+function getCategories($movieID) {
+    $conn = new mysqli(DBHOST, DBUSER, DBPASS, DBNAME);
+
+    // Check connection
+    if ($conn->connect_error) {
+        Redirect("./404.php");
+    }
+    $sql = "SELECT categories FROM all_movies WHERE id=" . $movieID;
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        // output data of each row
+        $categories = $result->fetch_assoc()["categories"];
+        return explode(',', $categories);;
+    } else {
+        return "";
+    }
+    $conn->close();
 }
 
 function arrayToString($array) {
@@ -49,6 +68,10 @@ function arrayToString($array) {
     return $arrayString;
 }
 
+function getCategoryURL($category) {
+    $url = "/FilmBuddy/web/results.php?c=" . $category;
+    return $url;
+}
 
 ?>
 <html lang="en">
@@ -149,9 +172,8 @@ function arrayToString($array) {
                         <span><?php echo $movie['imdbRating'];?></span>
                         <i class="fa fa-star" aria-hidden="true"></i>
                     </li>
-                    <!--todo Remove != "" condition with new database-->
                     <?php
-                    if($movie['tomatoImage'] != "" && $movie['tomatoImage'] != "N/A") { ?>
+                    if($movie['tomatoImage'] != "N/A") { ?>
                         <li class="detailWrapper">
                             <a href="<?php echo $movie['tomatoURL'];?>">
                         <?php
@@ -163,26 +185,26 @@ function arrayToString($array) {
                                 <img style="vertical-align:middle" src="images/rt-certified-fresh.png"
                                            alt="Certified Fresh icon">
                         <?php }?>
-                            <span><?php echo $movie['tomatoMeter']; ?></span>
-                             </a>
+                            </a>
+                            <span><?php echo $movie['tomatoMeter']; ?>% - Critics</span>
                         </li>
                     <?php
                     }
                     ?>
                     <?php
-                    if($movie['tomatoUserRating'] != "" && $movie['tomatoUserRating'] != "N/A") { ?>
+                    if($movie['tomatoUserRating'] != "N/A") { ?>
                         <li class="detailWrapper">
                             <a href="<?php echo $movie['tomatoURL'];?>">
-                        <?php
-                        if ($movie['tomatoUserRating'] >= (float)"3.5") { ?>
-                                <img style="vertical-align:middle" src="images/rt-upright.png"
-                                           alt="Upright Popcorn icon">
-                        <?php } else { ?>
-                                <img style="vertical-align:middle" src="images/rt-spilled.png"
-                                           alt="Spilled Popcorn icon">
-                        <?php } ?>
-                        <span><?php echo $movie['tomatoMeter']; ?></span>
+                                <?php
+                                if ($movie['tomatoUserRating'] >= (float)"3.5") { ?>
+                                        <img style="vertical-align:middle" src="images/rt-upright.png"
+                                                   alt="Upright Popcorn icon">
+                                <?php } else { ?>
+                                        <img style="vertical-align:middle" src="images/rt-spilled.png"
+                                                   alt="Spilled Popcorn icon">
+                                <?php } ?>
                              </a>
+                            <span><?php echo $movie['tomatoMeter']; ?>% - Audience</span>
                         </li>
                         <?php
                     }
@@ -203,7 +225,7 @@ function arrayToString($array) {
                     <li class="detailWrapper">
                         <i class="fa fa-volume-up" aria-hidden="true"></i>
                         <span><?php echo arrayToString($movie['languages']);?></span>
-                    </li>exit
+                    </li>
                     <li class="detailWrapper">
                         <i class="fa fa-globe" aria-hidden="true"></i>
                         <span><?php echo arrayToString($movie['countries']);?></span>
@@ -230,6 +252,18 @@ function arrayToString($array) {
                     <li class="detailWrapper">
                         <i class="fa fa-users" aria-hidden="true"></i>
                         <span><?php echo $movie['actors'];?></span>
+                    </li>
+                    <h4>Categories</h4>
+                    <li class="detailWrapper">
+                        <i class="fa fa-film" aria-hidden="true"></i>
+                        <span>
+                            <?php
+                            foreach ($categories as $category) {
+                                $categoryURL = getCategoryURL($category);
+                                echo "<a id='categoryURL' href='$categoryURL'>" . $category . " | " . "</a>";
+                            }
+                            ?>
+                        </span>
                     </li>
                 </ul>
             </div>

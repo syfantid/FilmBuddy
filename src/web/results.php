@@ -17,8 +17,22 @@ header('Content-Type: text/html; charset=utf-8');
 
 $rows = 16;
 $start = 0;
+$category = isset($_REQUEST['c']) ? $_REQUEST['c'] : false;
+$urlCategory = $category;
+$df = "";
 /* Get query anf filters */
 $query = isset($_REQUEST['q']) ? $_REQUEST['q'] : false;
+if($query) {
+    $df = "semantics_plot";
+    $df_letter = "q";
+}
+if($category) {
+    $df = "categories";
+    $df_letter = "c";
+    $query = $category;
+}
+/* Keep original URL*/
+$urlQuery = $query;
 $genres = isset($_REQUEST['genre']) ? $_REQUEST['genre'] : array();
 $years = isset($_REQUEST['year']) ? $_REQUEST['year'] : array();
 if(!is_array($years)) {
@@ -29,8 +43,6 @@ if(!is_array($imdb)) {
     $imdb = explode(',', $imdb);
 }
 $continents = isset($_REQUEST['continents']) ? $_REQUEST['continents'] : array();
-/* Keep original URL*/
-$urlQuery = $query;
 /*$noPageQuery = preg_replace($pattern, '', $query);*/
 /* Basic options for querying*/
 $options = array();
@@ -49,7 +61,6 @@ if ($query) {
     if (get_magic_quotes_gpc() == 1) {
         $query = stripslashes($query);
     }
-
     /* If the number of total results is not set yet, then make an extra file_get_contents call to identify the total
     number of results*/
     if(!isset($_SESSION['total'])) {
@@ -123,7 +134,8 @@ function Redirect($url, $permanent = false)
 }
 
 function reformatLink($query, $years, $imdb, $genres, $continents) {
-    $link = $_SERVER['PHP_SELF'] . "?q=" . $query;
+    global $df_letter;
+    $link = $_SERVER['PHP_SELF'] . "?" . $df_letter ."=" . $query;
     if(!empty($genres)) {
         foreach ($genres as $genre) {
             $link .= "&genre[]=" . $genre;
@@ -162,8 +174,9 @@ function reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continent
 }
 
 function formatSimpleQuery($query,$start,$rows) {
+    global $df;
     $url = "http://" . SOLRHOST . ":" . SOLRPORT . SOLRNAME . "/movies/select?";
-    $options = array("df"=>"semantics_plot", "hl.fl"=>"semantics_plot", "hl"=> "on", "hl.snippets"=>3, "indent"=>"on",
+    $options = array("df"=>$df, "hl.fl"=>$df, "hl"=> "on", "hl.snippets"=>3, "indent"=>"on",
         "q"=>$query,"rows"=>$rows,"start"=>$start,"wt"=>"json");
     $url .= http_build_query($options,'','&');
     return $url;
@@ -306,7 +319,7 @@ function get_highlights($snippets) {
                 <!-- Form -->
                 <form accept-charset="utf-8" action="results.php" method="get">
                     <!--Recreate the previous query link to prepend to form filtering results-->
-                    <input type="hidden" name="q" value="<?php echo $urlQuery;?>">
+                    <input type="hidden" name=<?php echo $df_letter;?> value="<?php echo $urlQuery;?>">
 
                     <!--Dropdown menu for film genres filter-->
                     <li class="dropdown">
@@ -441,32 +454,8 @@ function get_highlights($snippets) {
                             ?>
                             <div class="container"><?php
                                 foreach ($results['response']['docs'] as $doc) {
-                                    $highlights = get_highlights($results['highlighting'][$doc['id']]['semantics_plot']);
+                                    $highlights = get_highlights($results['highlighting'][$doc['id']][$df]);
                                     ?>
-
-                                    <!--<div class="browse-movie-wrap col-xs-10 col-sm-5">
-                                        <a href="https://yts.ag/movie/mechanic-resurrection-2016" class="browse-movie-link">
-                                            <figure>
-                                                <img class="img-responsive" src="/assets/images/movies/mechanic_resurrection_2016/medium-cover.jpg" alt="Mechanic: Resurrection (2016) download" width="210" height="315">
-                                                <figcaption class="hidden-xs hidden-sm">
-                                                    <span class="icon-star"></span>
-                                                    <h4 class="rating">5.7 / 10</h4>
-                                                    <h4>Action</h4>
-                                                    <h4>Crime</h4>
-                                                    <span class="button-green-download2-big">View Details</span>
-                                                </figcaption>
-                                            </figure>
-                                        </a>
-                                        <div class="browse-movie-bottom">
-                                            <a href="https://yts.ag/movie/mechanic-resurrection-2016" class="browse-movie-title">Mechanic: Resurrection</a>
-                                            <div class="browse-movie-year">2016</div>
-                                            <div class="browse-movie-tags">
-                                                <a href="https://yts.ag/torrent/download/15D0FFD08EA199E877886437DDCBC9A36C4EB026.torrent" rel="nofollow" title="Download Mechanic: Resurrection 720p Torrent">720p</a>
-                                            </div>
-                                        </div>
-                                    </div>-->
-
-
                                     <div class="browse-movie-wrap col-xs-7 col-sm-4 col-md-3 col-lg-3 portfolio-item hover10">
                                         <?php $movieURL = "http://" . DBHOST . ":" . WEBPORT . "/FilmBuddy/web/movie.php?id=" . $doc['id'];?>
 
@@ -490,7 +479,7 @@ function get_highlights($snippets) {
                                                 ?>
                                                 <figcaption class="hidden-xs hidden-sm">
                                                     <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
-                                                    <h4 class="rating"><?php echo $doc['imdb_rating'];?>/10</h4>
+                                                    <h4 class="rating"><?php echo $doc['imdb_rating'];?> / 10</h4>
                                                     <h4><?php echo $doc['genre'];?></h4>
                                                 </figcaption>
                                                 </a>
@@ -502,8 +491,12 @@ function get_highlights($snippets) {
                                         <p id="genre"><?php echo $doc['genre']; ?></p>
                                         <p id="highlights">Because of your interest in:
                                         <?php
-                                        foreach (array_values($highlights) as $highlight) {
-                                            echo $highlight . " ";
+                                        if($df_letter == 'q') {
+                                            foreach (array_values($highlights) as $highlight) {
+                                                echo $highlight . " ";
+                                            }
+                                        } else {
+                                            echo $category;
                                         }
                                         ?>
                                         </p>
