@@ -60,6 +60,26 @@ function getCategories($movieID) {
     $conn->close();
 }
 
+function getPoster($movieID) {
+    $conn = new mysqli(DBHOST, DBUSER, DBPASS, DBNAME);
+
+    // Check connection
+    if ($conn->connect_error) {
+        return "N/A";
+    }
+    $sql = "SELECT icon FROM all_movies WHERE id=" . $movieID;
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        // output data of each row
+        $icon = $result->fetch_assoc()["icon"];
+        return $icon;
+    } else {
+        return "N/A";
+    }
+    $conn->close();
+}
+
 function arrayToString($array) {
     $arrayString = "";
     foreach ($array as $item) {
@@ -157,7 +177,15 @@ function getCategoryURL($category) {
         <div class="row">
 
             <div class="col-md-4">
-                <img class="img-responsive" src="<?php echo $movie['poster'];?>" alt="Movie poster for movie <?php echo $movie['title'];?>">
+                <?php
+                $src = "images/keep-calm-but-sorry-no-poster.jpg";
+                if($movie['poster'] != "N/A") {
+                    $src = $movie['poster'];
+                } else if(getPoster($movieID) != "N/A") {
+                    $src = getPoster($movieID);
+                }
+                ?>
+                <img class="img-responsive" src="<?php echo $src;?>" alt="Movie poster for movie <?php echo $movie['title'];?>">
             </div>
 
             <div class="col-md-8">
@@ -166,11 +194,20 @@ function getCategoryURL($category) {
                 <h3>Movie Ratings</h3>
                 <ul id="details">
                     <li class="detailWrapper">
-                        <a href="<?php echo $imdbURL;?>">
-                            <img style="vertical-align:middle" src="images/logo-imdb.svg" alt="IMDb logo">
-                        </a>
-                        <span><?php echo $movie['imdbRating'];?></span>
-                        <i class="fa fa-star" aria-hidden="true"></i>
+                        <span class="imdbRatingPlugin" data-user="ur26106263"
+                              data-title="<?php echo $movie['imdbID'];?>" data-style="p3">
+                            <a href="http://www.imdb.com/title/<?php echo $movie['imdbID'];?>/?ref_=plg_rt_1">
+                                <img src="http://g-ecx.images-amazon.com/images/G/01/imdb/plugins/rating/images/imdb_37x18.png"
+                                     alt=" <?php echo $movie['title'];?> on IMDb" />
+                            </a>
+                        </span>
+                        <script>
+                            (function(d,s,id){var js,stags=d.getElementsByTagName(s)[0];
+                                if(d.getElementById(id)){return;}js=d.createElement(s);
+                                js.id=id;
+                                js.src="http://g-ec2.images-amazon.com/images/G/01/imdb/plugins/rating/js/rating.min.js";
+                                stags.parentNode.insertBefore(js,stags);})(document,'script','imdb-rating-api');
+                        </script>
                     </li>
                     <?php
                     if($movie['tomatoImage'] != "N/A") { ?>
@@ -186,7 +223,8 @@ function getCategoryURL($category) {
                                            alt="Certified Fresh icon">
                         <?php }?>
                             </a>
-                            <span><?php echo $movie['tomatoMeter']; ?>% - Critics</span>
+                            <span><strong><?php echo $movie['tomatoMeter']; ?></strong><small>%</small>
+                                <span class="votes">  <?php echo $movie['tomatoReviews'];?> critics votes</span></span>
                         </li>
                     <?php
                     }
@@ -204,7 +242,8 @@ function getCategoryURL($category) {
                                                    alt="Spilled Popcorn icon">
                                 <?php } ?>
                              </a>
-                            <span><?php echo $movie['tomatoMeter']; ?>% - Audience</span>
+                            <span><strong><?php echo $movie['tomatoMeter']; ?></strong><small>%</small>
+                                <span class="votes">  <?php echo $movie['tomatoUserReviews'];?> audience votes</span></span>
                         </li>
                         <?php
                     }
@@ -279,6 +318,7 @@ function getCategoryURL($category) {
             </div>
 
             <div class="col-sm-3 col-xs-6">
+                <!--<iframe src="http://m.imdb.com/title/<?php /*echo $movie['imdbID'];*/?>/videogallery"></iframe>-->
                 <a href="#">
                     <img class="img-responsive portfolio-item" src="http://placehold.it/500x300" alt="">
                 </a>

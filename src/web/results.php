@@ -469,7 +469,7 @@ function get_highlights($snippets) {
                                                     } else { ?>
                                                         <img class="img-responsive height-adjust"
                                                              src="images/keep-calm-but-sorry-no-poster.jpg"
-                                                             alt="Movie poster thumbnail" width="180"
+                                                             alt="Movie poster not available thumbnail" width="180"
                                                              height="255"> <?php
                                                     }
                                                 } else { ?>
