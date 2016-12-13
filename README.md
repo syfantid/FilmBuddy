@@ -21,5 +21,5 @@ Project for my thesis; Social Recommender System
 #### Installing SOLR: http://lucene.apache.org/solr/
 #### Installing Bootstrap: http://getbootstrap.com/getting-started/
 #### Installing Bootstrap Slider Plugin: https://github.com/seiyria/bootstrap-slider
-#### Installing MongoDB Driver for PHP: http://php.net/manual/en/mongodb.installation.pecl.php
+#### Installing MongoDB Driver for PHP: http://php.net/manual/en/mongodb.installation.pecl.php (Possible problem solutions: http://stackoverflow.com/questions/40979377/laravel-homestead-mongo-install-causing-php-error-undefined-symbol-php-json-ser and https://sonnguyen.ws/install-mongodb-mongo-php-in-ubuntu/ or http://stackoverflow.com/questions/24533938/class-mongoclient-not-found)
 #### Installing Composer: https://www.digitalocean.com/community/tutorials/how-to-install-and-use-composer-on-ubuntu-14-04
