@@ -18,7 +18,7 @@ Project for my thesis; Social Recommender System
 4. quick-json-1.0.2.3 // JSON format handling
 5. jsoup-1.9.2.jar 
 
-#### Installing SOLR: http://lucene.apache.org/solr/
+#### Installing SOLR: http://lucene.apache.org/solr/ (Postman for SOLR: http://blog.comperiosearch.com/blog/2014/08/28/indexing-database-using-solr/)
 #### Installing Bootstrap: http://getbootstrap.com/getting-started/
 #### Installing Bootstrap Slider Plugin: https://github.com/seiyria/bootstrap-slider
 #### Installing MongoDB Driver for PHP: http://php.net/manual/en/mongodb.installation.pecl.php (Possible problem solutions: http://stackoverflow.com/questions/40979377/laravel-homestead-mongo-install-causing-php-error-undefined-symbol-php-json-ser and https://sonnguyen.ws/install-mongodb-mongo-php-in-ubuntu/ or http://stackoverflow.com/questions/24533938/class-mongoclient-not-found)
