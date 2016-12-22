@@ -13,6 +13,7 @@ session_start();
     <meta name="author" content="Sofia Yfantidou">
 
     <title>Film Buddy: A Social Movie Recommender Engine using Semantics</title>
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
 
     <!-- Bootstrap Core CSS -->
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
@@ -56,7 +57,7 @@ session_start();
                         <a href="#">About</a>
                     </li>
                     <li>
-                        <a href="#">Services</a>
+                        <a href="privacypolicy.html">Privacy Policy</a>
                     </li>
                     <li>
                         <a href="#">Contact</a>

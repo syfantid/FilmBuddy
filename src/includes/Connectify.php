@@ -21,7 +21,7 @@ class Connectify {
     function __construct($host, $port)
     {
         /*$this->manager = new MongoDB\Driver\Manager("mongodb://$host:$port");*/
-        $this->collection = (new MongoDB\Client)->movies_component->all_movies_new;
+        $this->collection = (new MongoDB\Client)->movies_component->all_movies;
     }
 
     function getMovie($movieID) {

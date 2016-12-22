@@ -13,6 +13,10 @@ body {
     margin-bottom: 50px;
 }
 
+#height-adjust {
+    min-height: 350px; !important;
+}
+
 footer {
     margin: 50px 0;
 }
@@ -28,12 +32,17 @@ footer {
 
 img.img-responsive.height-adjust {
     height: 255px; !important;
+    min-width: 100%;
     border:5px solid #c6c6c6;
     vertical-align: top;
 }
 
 h3 a {
-    font-size: .4em;
+    font-size: .5em;
+}
+
+#title {
+    line-height: 0.5;
 }
 
 #genre {
@@ -42,8 +51,8 @@ h3 a {
 }
 
 #highlights {
-    color: #0e68c9;
-    font-size: .8em;
+    color: #5bc0de;
+    font-size: .7em;
 }
 
 figure .exact {
@@ -71,7 +80,7 @@ figcaption {
     caption-side: top;
     color: white;
     height: 255px;
-    width: 75%;
+    width: 100%;
     text-align: center;
     left: 0;
     opacity: 0;
@@ -91,7 +100,7 @@ figcaption {
 
 figure {
     display: table;
-    width: 180px; !important;
+    /*width: 180px; !important;*/
     margin: 20px; !important;
 }
 
@@ -114,7 +123,7 @@ figure figcaption h4 {
 
 .glyphicon.glyphicon-star {
     font-size: 2em;
-    color: #0b8bcc;
+    color: #5bc0de; 
 }
 
 /* --------------------------------------------------------------------------- */

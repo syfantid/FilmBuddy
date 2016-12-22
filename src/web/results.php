@@ -8,6 +8,7 @@ if(isset($_GET['submit'])) {
 
 <?php
 
+set_include_path($_SERVER["DOCUMENT_ROOT"] . "/film_buddy/src/includes/");
 require_once('constants.php');
 require_once('Connectify.php');
 
@@ -15,7 +16,7 @@ require_once('Connectify.php');
 // make sure browsers see this page as utf-8 encoded HTML
 header('Content-Type: text/html; charset=utf-8');
 
-$rows = 16;
+$rows = 24;
 $start = 0;
 $category = isset($_REQUEST['c']) ? $_REQUEST['c'] : false;
 $urlCategory = $category;
@@ -50,7 +51,7 @@ $options = array();
 $filename = "files/unique_genres.txt";
 $allGenres = file($filename, FILE_IGNORE_NEW_LINES);
 /* Continents */
-const ALL_CONTINENTS = array("Africa", "Asia", "Europe", "N.America", "S.America", "Oceania");
+const ALL_CONTINENTS = array("Africa", "Asia", "Europe", "N.America", "L.America", "Oceania");
 
 $mongo = new Connectify(DBHOST, MONGOPORT);
 
@@ -63,7 +64,7 @@ if ($query) {
     }
     /* If the number of total results is not set yet, then make an extra file_get_contents call to identify the total
     number of results*/
-    if(!isset($_SESSION['total'])) {
+    if(!isset($_SESSION['total']) || $_SESSION['total'] == 0) {
         /*print_r("Setting session variables!");*/
         $url = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
 
@@ -88,6 +89,8 @@ if ($query) {
     /* Set current page and offset from the first comment (depends on current page) */
     if(isset($_GET['currentPage']) && !$newSession) {
         $currentPage = $_GET['currentPage'];
+        /*print_r("Current Page: " . $currentPage . " Total Pages: " . $_SESSION['totalPages'] . " Total Results: " . $_SESSION['total']);*/
+
         /* Check if currentPage is within limits (In case the user tampers with the url)*/
         if ($currentPage < 1) {
             $currentPage = 1;
@@ -96,6 +99,7 @@ if ($query) {
             $currentPage = $_SESSION['totalPages'] ;
         }
         $start = ($currentPage - 1) * $rows; // Calculate the offset for the page
+        /*print_r($start);*/
         if ($currentPage == $_SESSION['totalPages'] ) { // The rows number may change only for the last page
             $rows = $_SESSION['total'] - $start;
         }
@@ -107,6 +111,7 @@ if ($query) {
             $rows = $_SESSION['total'] - $start;
         }
     }
+    /*print_r(" Start: " . $start);*/
     $results = false;
     /* Reformating query so that it takes into account the start and rows variables */
     $url = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
@@ -231,6 +236,15 @@ function get_highlights($snippets) {
     }
     return array_unique($interests);
 }
+
+function get_icon_name($doc) {
+    if($doc['icon'] == "N/A") {
+        return $doc['icon'];
+    } else {
+        preg_match('/\/[A-Z]\/(.*)/', $doc['icon'], $output_array);
+        return $output_array[1];
+    }
+}
 ?>
 
 <html lang="en">
@@ -245,6 +259,7 @@ function get_highlights($snippets) {
     <meta name="author" content="Sofia Yfantidou">
 
     <title>Film Buddy: A Social Movie Recommender Engine using Semantics</title>
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
 
     <!-- Custom CSS -->
     <link href="assets/css/3-col-portfolio.css" rel="stylesheet">
@@ -295,7 +310,7 @@ function get_highlights($snippets) {
                         <a href="#">About</a>
                     </li>
                     <li>
-                        <a href="#">Services</a>
+                        <a href="privacypolicy.html">Privacy Policy</a>
                     </li>
                     <li>
                         <a href="#">Contact</a>
@@ -424,7 +439,7 @@ function get_highlights($snippets) {
                     </li>
                     <!--End of film continent filter-->
 
-                    <li><input type="submit" class="btn btn-primary" id="submit_button" role="button" name="submit" value="Apply magic!"/></li>
+                    <li><input type="submit" class="btn btn-info" id="submit_button" role="button" name="submit" value="Apply magic!"/></li>
                 </form>
                 <!-- /#form-wrapper -->
             </ul>
@@ -436,7 +451,7 @@ function get_highlights($snippets) {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
-                        <a href="#menu-toggle" class="btn btn-primary" id="menu-toggle">Filters</a>
+                        <a href="#menu-toggle" class="btn btn-info" id="menu-toggle">Filters</a>
                         <!-- Page Header -->
                         <div class="row">
                             <div class="col-lg-12">
@@ -455,26 +470,31 @@ function get_highlights($snippets) {
                             <div class="container"><?php
                                 foreach ($results['response']['docs'] as $doc) {
                                     $highlights = get_highlights($results['highlighting'][$doc['id']][$df]);
+                                    if(sizeof($highlights) > 5) {
+                                        $highlights = array_slice($highlights, 0, 5); // return the first five elements
+                                    }
                                     ?>
-                                    <div class="browse-movie-wrap col-xs-7 col-sm-4 col-md-3 col-lg-3 portfolio-item hover10">
-                                        <?php $movieURL = "http://" . DBHOST . ":" . WEBPORT . "/FilmBuddy/web/movie.php?id=" . $doc['id'];?>
+                                    <div id="height-adjust" class="browse-movie-wrap col-xs-6 col-sm-4 col-md-3 col-lg-2 portfolio-item hover10">
+                                        <!-- todo Change URL for production -->
+                                        <?php $movieURL = "http://snf-730593.vm.okeanos.grnet.gr/film_buddy/src/web/movie.php?id=" . $doc['id'];?>
 
                                             <figure class="exact">
                                                 <a href="<?php echo $movieURL;?>">
-                                                <?php if($doc['icon'] == "N/A" || !strpos(@get_headers(urldecode($doc['icon']))[0],"200")) {
-                                                    $poster = $mongo->getPosterURL($doc['id']);
-                                                    if($poster != "N/A") {?>
+                                                <?php $poster = get_icon_name($doc); // Poster name from IMDB
+                                                if($poster == "N/A" || !file_exists("images/" . $poster)/*|| !strpos(@get_headers(urldecode($doc['icon']))[0],"200")*/) {
+                                                    $poster = $mongo->getPosterURL($doc['id']); // Poster URL from Mongo
+                                                    if($poster != "N/A" && strpos($poster, 'imbd')) {?>
                                                         <img class="img-responsive height-adjust" src="<?php echo $poster;?>"
-                                                         alt="Movie poster thumbnail" width="180" height="255"><?php
+                                                         alt="Movie poster thumbnail mongo"  height="255"><?php
                                                     } else { ?>
                                                         <img class="img-responsive height-adjust"
                                                              src="images/keep-calm-but-sorry-no-poster.jpg"
-                                                             alt="Movie poster not available thumbnail" width="180"
+                                                             alt="Movie poster not available thumbnail" 
                                                              height="255"> <?php
                                                     }
                                                 } else { ?>
-                                                    <img class="img-responsive height-adjust" src="<?php echo $doc['icon']; ?>"
-                                                         alt="Movie poster thumbnail"  width="180" height="255"> <?php
+                                                    <img class="img-responsive height-adjust" src="images/<?php echo $poster; ?>"
+                                                         alt="Movie poster thumbnail imdb"   height="255"> <?php
                                                 }
                                                 ?>
                                                 <figcaption class="hidden-xs hidden-sm">
@@ -485,10 +505,10 @@ function get_highlights($snippets) {
                                                 </a>
                                             </figure>
 
-                                        <h3>
+                                        <h3 id="title">
                                             <a href="<?php echo $movieURL;?>"><?php echo $doc['title'][0]; ?></a>
                                         </h3>
-                                        <p id="genre"><?php echo $doc['genre']; ?></p>
+                                        <!--<p id="genre"><?php /*echo $doc['genre']; */?></p>-->
                                         <p id="highlights">Because of your interest in:
                                         <?php
                                         if($df_letter == 'q') {
@@ -515,27 +535,27 @@ function get_highlights($snippets) {
                                     <?php
                                     /* URL for redirection */
                                     $url = reformatLink($urlQuery, $years, $imdb, $genres, $continents);
-
+                                    /*print_r($currentPage);*/
                                     /* Show previous pages' links */
                                     if ($currentPage > 1) { // First page doesn't have a previous page
-                                        echo " <a href='$url&currentPage=1' class='btn btn-primary btn-lg' role='button'>First</a> "; // Link to first page
+                                        echo " <a href='$url&currentPage=1' class='btn btn-info btn-lg' role='button'>First</a> "; // Link to first page
                                         $previousPage = $currentPage - 1; // Previous page number
-                                        echo " <a href='$url&currentPage=$previousPage' class='btn btn-primary btn-lg' role='button'>Previous</a> "; // Link to previous page
+                                        echo " <a href='$url&currentPage=$previousPage' class='btn btn-info btn-lg' role='button'>Previous</a> "; // Link to previous page
                                         if ($currentPage == $_SESSION['totalPages'] ) {
-                                            echo " <span class='btn btn-primary btn-lg disabled' role='button'>Next</span> ";
-                                            echo " <span class='btn btn-primary btn-lg disabled' role='button'>Last</span> ";
+                                            echo " <span class='btn btn-info btn-lg disabled' role='button'>Next</span> ";
+                                            echo " <span class='btn btn-info btn-lg disabled' role='button'>Last</span> ";
                                         }
                                     }
 
                                     /* Show next pages' links */
                                     if ($currentPage != $_SESSION['totalPages'] ) { // Last page doesn't have a next page
                                         if ($currentPage == 1) {
-                                            echo " <span class='btn btn-primary btn-lg disabled'>First</span> ";
-                                            echo " <span class='btn btn-primary btn-lg disabled'>Previous</span> ";
+                                            echo " <span class='btn btn-info btn-lg disabled'>First</span> ";
+                                            echo " <span class='btn btn-info btn-lg disabled'>Previous</span> ";
                                         }
                                         $nextPage = $currentPage + 1; // Next page number
-                                        echo " <a href='$url&currentPage=$nextPage' class='btn btn-primary btn-lg' role='button'>Next</a> "; // Link to next page
-                                        echo " <a href='$url&currentPage={$_SESSION['totalPages']} ' class='btn btn-primary btn-lg' role='button'>Last</a>"; // Link to last page
+                                        echo " <a href='$url&currentPage=$nextPage' class='btn btn-info btn-lg' role='button'>Next</a> "; // Link to next page
+                                        echo " <a href='$url&currentPage={$_SESSION['totalPages']} ' class='btn btn-info btn-lg' role='button'>Last</a>"; // Link to last page
                                     }
                                     ?>
                                 </div>

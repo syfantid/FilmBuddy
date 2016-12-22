@@ -12,6 +12,7 @@ function Redirect($url, $permanent = false)
     exit();
 }
 
+set_include_path($_SERVER["DOCUMENT_ROOT"] . "/film_buddy/src/includes/");
 require_once('constants.php');
 require_once('Connectify.php');
 
@@ -32,7 +33,7 @@ if ($movieID) { // If the query is correct
 
     $movie = $mongo->getMovie($movieID);
     if($movie == null) {
-
+        Redirect("./404.php");
     }
     $imdbURL = "http://www.imdb.com/title/" . $movie['imdbID'];
     $categories = getCategories($movieID);
@@ -73,7 +74,12 @@ function getPoster($movieID) {
     if ($result->num_rows > 0) {
         // output data of each row
         $icon = $result->fetch_assoc()["icon"];
-        return $icon;
+        preg_match('/\/[A-Z]\/(.*)/', $icon, $output_array);
+        if(sizeof($output_array) > 1) {
+            return $output_array[1];
+        } else {
+            return "N/A";
+        }
     } else {
         return "N/A";
     }
@@ -89,7 +95,7 @@ function arrayToString($array) {
 }
 
 function getCategoryURL($category) {
-    $url = "/FilmBuddy/web/results.php?c=" . $category;
+    $url = "http://snf-730593.vm.okeanos.grnet.gr/film_buddy/src/web/results.php?c=" . $category;
     return $url;
 }
 
@@ -107,6 +113,7 @@ function getCategoryURL($category) {
     <meta name="author" content="Sofia Yfantidou">
 
     <title><?php echo $movie['title'];?> Page</title>
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
 
     <!-- Bootstrap Core CSS -->
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
@@ -148,7 +155,7 @@ function getCategoryURL($category) {
                         <a href="#">About</a>
                     </li>
                     <li>
-                        <a href="#">Services</a>
+                        <a href="privacypolicy.html">Privacy Policy</a>
                     </li>
                     <li>
                         <a href="#">Contact</a>
@@ -179,10 +186,10 @@ function getCategoryURL($category) {
             <div class="col-md-4">
                 <?php
                 $src = "images/keep-calm-but-sorry-no-poster.jpg";
-                if($movie['poster'] != "N/A") {
+                if($movie['poster'] != "N/A" && strpos($movie['poster'], 'imbd')) {
                     $src = $movie['poster'];
-                } else if(getPoster($movieID) != "N/A") {
-                    $src = getPoster($movieID);
+                } else if(getPoster($movieID) != "N/A" && getPoster($movieID) != "") {
+                    $src = "images/" . getPoster($movieID);
                 }
                 ?>
                 <img class="img-responsive" src="<?php echo $src;?>" alt="Movie poster for movie <?php echo $movie['title'];?>">
@@ -318,10 +325,11 @@ function getCategoryURL($category) {
             </div>
 
             <div class="col-sm-3 col-xs-6">
-                <!--<iframe src="http://m.imdb.com/title/<?php /*echo $movie['imdbID'];*/?>/videogallery"></iframe>-->
-                <a href="#">
+                <!--<iframe src="http://m.imdb.com/title/<?php /*echo $movie['imdbID'];*/?>/videogallery" target="_parent"></iframe>-->
+                <a href="http://m.imdb.com/title/<?php echo $movie['imdbID'];?>/videogallery" target="popup">Watch trailer</a>
+                <!--<a href="#">
                     <img class="img-responsive portfolio-item" src="http://placehold.it/500x300" alt="">
-                </a>
+                </a>-->
             </div>
 
             <div class="col-sm-3 col-xs-6">

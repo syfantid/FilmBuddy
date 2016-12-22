@@ -119,11 +119,11 @@
 }
 
 #slider_li .tooltip-inner {
-    background-color: #0b8bcc;
+    background-color: #5bc0de;
 }
 
 #slider_li .tooltip-arrow {
-    border-top-color: #0b8bcc;
+    border-top-color: #5bc0de;
 }
 
 #submit_button {
@@ -137,7 +137,7 @@
 }
 
 #check {
-    color: #0b8bcc;
+    color: #5bc0de;
 }
 
 @media(min-width:768px) {

@@ -1,0 +1,31 @@
+body {
+    padding-top: 70px;
+    /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+}
+
+#login {
+    padding: 40px 0px 0px 0px;
+}
+
+#like {
+    padding-top: 40px;
+}
+
+/* Change the status font, color etc. */
+#status {
+    color: #55a6c2;
+}
+/*
+!* Vertical Center Alignment *!
+body {
+    display: table;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.jumbotron {
+    display: table-cell;
+    vertical-align: middle;
+    background-color: inherit; !important;
+}*/

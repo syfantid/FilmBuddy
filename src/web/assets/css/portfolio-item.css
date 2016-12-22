@@ -12,6 +12,19 @@ body {
     margin-bottom: 25px;
 }
 
+/*li {
+    display: table;
+}
+
+li > span {
+    display: table-row;
+}
+
+li > span::before {
+    display: table-cell;
+    text-align: right;
+}*/
+
 footer {
     margin: 50px 0;
 }

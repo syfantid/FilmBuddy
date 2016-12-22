@@ -1,0 +1,7 @@
+{
+    "require": {
+        "mongodb/mongodb": "^1.0.0",
+        "facebook/graph-sdk" : "~5.0"
+    }
+}
+
