@@ -75,7 +75,7 @@ if ($query) {
             // in production you'd probably log or email this error to an admin
             // and then show a special message to the user but for this example
             // we're going to show the full exception
-            Redirect("./404.php");
+            Redirect("./404.html");
         }
         $results = json_decode($results, true);
         $_SESSION['total'] = (int)$results['response']['numFound']; // The number of relevant movies found
@@ -124,7 +124,7 @@ if ($query) {
         // in production you'd probably log or email this error to an admin
         // and then show a special message to the user but for this example
         // we're going to show the full exception
-        Redirect("./404.php");
+        Redirect("./404.html");
     }
 }
 
@@ -323,7 +323,7 @@ function get_icon_name($doc) {
     </nav>
 
     <!-- All page content except for Navigation bar-->
-    <div id="wrapper" class="toggled">
+    <div id="wrapper">
 
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
@@ -439,7 +439,7 @@ function get_icon_name($doc) {
                     </li>
                     <!--End of film continent filter-->
 
-                    <li><input type="submit" class="btn btn-info" id="submit_button" role="button" name="submit" value="Apply magic!"/></li>
+                    <li><input type="submit" class="btn btn-info btn-responsive" id="submit_button" role="button" name="submit" value="Apply magic!"/></li>
                 </form>
                 <!-- /#form-wrapper -->
             </ul>
@@ -451,7 +451,7 @@ function get_icon_name($doc) {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
-                        <a href="#menu-toggle" class="btn btn-info" id="menu-toggle">Filters</a>
+                        <a href="#menu-toggle" class="btn btn-info btn-responsive" id="menu-toggle">Filters</a>
                         <!-- Page Header -->
                         <div class="row">
                             <div class="col-lg-12">
@@ -474,7 +474,7 @@ function get_icon_name($doc) {
                                         $highlights = array_slice($highlights, 0, 5); // return the first five elements
                                     }
                                     ?>
-                                    <div id="height-adjust" class="browse-movie-wrap col-xs-6 col-sm-4 col-md-3 col-lg-2 portfolio-item hover10">
+                                    <div id="height-adjust" class="browse-movie-wrap col-xs-12 col-sm-4 col-md-3 col-lg-2 portfolio-item hover10">
                                         <!-- todo Change URL for production -->
                                         <?php $movieURL = "http://snf-730593.vm.okeanos.grnet.gr/film_buddy/src/web/movie.php?id=" . $doc['id'];?>
 
@@ -538,24 +538,24 @@ function get_icon_name($doc) {
                                     /*print_r($currentPage);*/
                                     /* Show previous pages' links */
                                     if ($currentPage > 1) { // First page doesn't have a previous page
-                                        echo " <a href='$url&currentPage=1' class='btn btn-info btn-lg' role='button'>First</a> "; // Link to first page
+                                        echo " <a href='$url&currentPage=1' class='btn btn-info btn-responsive ' role='button'>First</a> "; // Link to first page
                                         $previousPage = $currentPage - 1; // Previous page number
-                                        echo " <a href='$url&currentPage=$previousPage' class='btn btn-info btn-lg' role='button'>Previous</a> "; // Link to previous page
+                                        echo " <a href='$url&currentPage=$previousPage' class='btn btn-info btn-responsive ' role='button'>Previous</a> "; // Link to previous page
                                         if ($currentPage == $_SESSION['totalPages'] ) {
-                                            echo " <span class='btn btn-info btn-lg disabled' role='button'>Next</span> ";
-                                            echo " <span class='btn btn-info btn-lg disabled' role='button'>Last</span> ";
+                                            echo " <span class='btn btn-info btn-responsive  disabled' role='button'>Next</span> ";
+                                            echo " <span class='btn btn-info btn-responsive  disabled' role='button'>Last</span> ";
                                         }
                                     }
 
                                     /* Show next pages' links */
                                     if ($currentPage != $_SESSION['totalPages'] ) { // Last page doesn't have a next page
                                         if ($currentPage == 1) {
-                                            echo " <span class='btn btn-info btn-lg disabled'>First</span> ";
-                                            echo " <span class='btn btn-info btn-lg disabled'>Previous</span> ";
+                                            echo " <span class='btn btn-info btn-responsive  disabled'>First</span> ";
+                                            echo " <span class='btn btn-info btn-responsive  disabled'>Previous</span> ";
                                         }
                                         $nextPage = $currentPage + 1; // Next page number
-                                        echo " <a href='$url&currentPage=$nextPage' class='btn btn-info btn-lg' role='button'>Next</a> "; // Link to next page
-                                        echo " <a href='$url&currentPage={$_SESSION['totalPages']} ' class='btn btn-info btn-lg' role='button'>Last</a>"; // Link to last page
+                                        echo " <a href='$url&currentPage=$nextPage' class='btn btn-info btn-responsive ' role='button'>Next</a> "; // Link to next page
+                                        echo " <a href='$url&currentPage={$_SESSION['totalPages']} ' class='btn btn-info btn-responsive ' role='button'>Last</a>"; // Link to last page
                                     }
                                     ?>
                                 </div>

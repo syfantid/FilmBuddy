@@ -33,12 +33,12 @@ if ($movieID) { // If the query is correct
 
     $movie = $mongo->getMovie($movieID);
     if($movie == null) {
-        Redirect("./404.php");
+        Redirect("./404.html");
     }
     $imdbURL = "http://www.imdb.com/title/" . $movie['imdbID'];
     $categories = getCategories($movieID);
 } else {
-    Redirect("./404.php");
+    Redirect("./404.html");
 }
 
 function getCategories($movieID) {
@@ -46,7 +46,7 @@ function getCategories($movieID) {
 
     // Check connection
     if ($conn->connect_error) {
-        Redirect("./404.php");
+        Redirect("./404.html");
     }
     $sql = "SELECT categories FROM all_movies WHERE id=" . $movieID;
     $result = $conn->query($sql);
@@ -276,6 +276,10 @@ function getCategoryURL($category) {
                         <i class="fa fa-globe" aria-hidden="true"></i>
                         <span><?php echo arrayToString($movie['countries']);?></span>
                     </li>
+                    <li class="detailWrapper">
+                        <i class="fa fa-play" aria-hidden="true"></i>
+                        <span><a href="http://m.imdb.com/title/<?php echo $movie['imdbID']?>/videogallery">Trailer</a></span>
+                    </li>
                     <?php
                     if($movie['awards']!="N/A") { ?>
                         <li class="detailWrapper">
@@ -315,43 +319,6 @@ function getCategoryURL($category) {
             </div>
 
         </div>
-        <!-- /.row -->
-
-        <!-- Related Projects Row -->
-        <div class="row">
-
-            <div class="col-lg-12">
-                <h3 class="page-header">Related Projects</h3>
-            </div>
-
-            <div class="col-sm-3 col-xs-6">
-                <!--<iframe src="http://m.imdb.com/title/<?php /*echo $movie['imdbID'];*/?>/videogallery" target="_parent"></iframe>-->
-                <a href="http://m.imdb.com/title/<?php echo $movie['imdbID'];?>/videogallery" target="popup">Watch trailer</a>
-                <!--<a href="#">
-                    <img class="img-responsive portfolio-item" src="http://placehold.it/500x300" alt="">
-                </a>-->
-            </div>
-
-            <div class="col-sm-3 col-xs-6">
-                <a href="#">
-                    <img class="img-responsive portfolio-item" src="http://placehold.it/500x300" alt="">
-                </a>
-            </div>
-
-            <div class="col-sm-3 col-xs-6">
-                <a href="#">
-                    <img class="img-responsive portfolio-item" src="http://placehold.it/500x300" alt="">
-                </a>
-            </div>
-
-            <div class="col-sm-3 col-xs-6">
-                <a href="#">
-                    <img class="img-responsive portfolio-item" src="http://placehold.it/500x300" alt="">
-                </a>
-            </div>
-
-        </div>
-        <!-- /.row -->
 
         <hr>
 

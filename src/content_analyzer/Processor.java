@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Class to process text (tweets and comments)
- * Created by Antigoni Founta on 13/4/2016.
+ * Created by sifantid
  */
 
 public class Processor {

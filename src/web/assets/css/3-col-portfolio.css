@@ -130,3 +130,31 @@ figure figcaption h4 {
 .browse-movie-wrap {
     margin-bottom: 15px;
 }
+
+@media(min-width:768px) {
+    #wrapper {
+        padding-right: 0;
+    }
+
+    #wrapper.toggled {
+        /*padding-right: 250px;*/
+    }
+
+    #sidebar-wrapper {
+        width: 0;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        width: 250px;
+    }
+
+    #page-content-wrapper {
+
+        position: absolute;
+    }
+
+    #wrapper.toggled #page-content-wrapper {
+        position: absolute;
+        margin-right: -250px;
+    }
+}
