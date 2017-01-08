@@ -1,8 +1,12 @@
 <?php
 session_start();
-if(isset($_GET['submit'])) {
-    session_unset();
+if(isset($_REQUEST['submitbtn'])) {
+    $_SESSION['total'] = 0;
+/*    print_r("Unsetting session...");*/
+    debug_to_console("Unsetting session... ");
 }
+header('Content-Type: text/html; charset=utf-8');
+
 ?>
 <!DOCTYPE html>
 
@@ -15,6 +19,7 @@ require_once('Connectify.php');
 // SOLR instance is already running
 // make sure browsers see this page as utf-8 encoded HTML
 header('Content-Type: text/html; charset=utf-8');
+header("X-XSS-Protection: 0");
 
 $rows = 24;
 $start = 0;
@@ -22,7 +27,22 @@ $category = isset($_REQUEST['c']) ? $_REQUEST['c'] : false;
 $urlCategory = $category;
 $df = "";
 /* Get query anf filters */
-$query = isset($_REQUEST['q']) ? $_REQUEST['q'] : false;
+$query = false;
+if(isset($_REQUEST['q'])) {
+    $query = $_REQUEST['q'];
+} elseif (isset($_POST['q'])) {
+    $query = $_POST['q'];
+} elseif (isset($_SESSION['query'])) {
+    $query = $_SESSION['query'];
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $_SESSION['query'] = $query;
+    header('Location:'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']);
+    die;
+}
+
+$query = preg_replace("/,/", " ", $query);
 if($query) {
     $df = "semantics_plot";
     $df_letter = "q";
@@ -34,6 +54,7 @@ if($category) {
 }
 /* Keep original URL*/
 $urlQuery = $query;
+$_SESSION['urlQuery'] = $urlQuery;
 $genres = isset($_REQUEST['genre']) ? $_REQUEST['genre'] : array();
 $years = isset($_REQUEST['year']) ? $_REQUEST['year'] : array();
 if(!is_array($years)) {
@@ -55,7 +76,6 @@ const ALL_CONTINENTS = array("Africa", "Asia", "Europe", "N.America", "L.America
 
 $mongo = new Connectify(DBHOST, MONGOPORT);
 
-
 if ($query) {
 
     // if magic quotes is enabled then stripslashes will be needed
@@ -66,19 +86,28 @@ if ($query) {
     number of results*/
     if(!isset($_SESSION['total']) || $_SESSION['total'] == 0) {
         /*print_r("Setting session variables!");*/
-        $url = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
-
+        $url_context = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
+        $url = $url_context[0];
+        $context = $url_context[1];
         // Just to get the total number of objects returned
         try {
-            $results = file_get_contents($url);
+            debug_to_console("Starting fetching results!");
+            $results = file_get_contents($url, false, $context);
+            if(!$results) {
+               // print_r("Problem 1");
+                Redirect("./404.html");
+            }
         } catch (Exception $e) {
             // in production you'd probably log or email this error to an admin
             // and then show a special message to the user but for this example
             // we're going to show the full exception
-            Redirect("./404.html");
+           Redirect("./404.html");
+           //print_r($e);
+            debug_to_console($e);
         }
         $results = json_decode($results, true);
         $_SESSION['total'] = (int)$results['response']['numFound']; // The number of relevant movies found
+       // print_r($_SESSION['total']);
         /* Number of pages needed for all comments */
         $_SESSION['totalPages'] = ceil($_SESSION['total'] / $rows);
         $newSession = true;
@@ -114,17 +143,25 @@ if ($query) {
     /*print_r(" Start: " . $start);*/
     $results = false;
     /* Reformating query so that it takes into account the start and rows variables */
-    $url = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
-    // in production code you'll always want to use a try /catch for any
-    // possible exceptions emitted  by searching (i.e. connection
-    // problems or a query parsing error)
+/*    print_r(" Query" . $query . " Start " . $start . " Rows " . $rows . " Years " . $years . " IMDb " . $imdb . " Genre " . $genres . " Continents " . $continents);*/
+    $url_context = reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents);
+    /*print_r("URL Context " . $url_context[0] . " " . $url_context[1]);*/
+    $url = $url_context[0];
+    $context = $url_context[1];
     try {
-        $results = file_get_contents($url);
+        $results = file_get_contents($url, false, $context);
+        if(!$results) {
+            Redirect("./404.html");
+           // print_r("Problem 2!");
+            debug_to_console("Results returned empty!");
+        }
     } catch (Exception $e) {
         // in production you'd probably log or email this error to an admin
         // and then show a special message to the user but for this example
         // we're going to show the full exception
         Redirect("./404.html");
+        //print_r($e);
+        debug_to_console($e);
     }
 }
 
@@ -138,21 +175,25 @@ function Redirect($url, $permanent = false)
     exit();
 }
 
-function reformatLink($query, $years, $imdb, $genres, $continents) {
+function reformatLink($query, $years, $imdb, $genres, $continents, $pageNumber) {
     global $df_letter;
-    $link = $_SERVER['PHP_SELF'] . "?" . $df_letter ."=" . $query;
-    if(!empty($genres)) {
+    if($df_letter == 'c') { // We don't need to post the category
+        $link = $_SERVER['PHP_SELF'] . "?" . $df_letter . "=" . $query . "&currentPage=" . $pageNumber;
+    } else { // We need to post the query
+        $link = $_SERVER['PHP_SELF'] . "?currentPage=" . $pageNumber;
+    }
+    if (!empty($genres)) {
         foreach ($genres as $genre) {
             $link .= "&genre[]=" . $genre;
         }
     }
-    if(!empty($years)) {
+    if (!empty($years)) {
         $link .= "&year=" . $years[0] . "," . $years[1];
     }
-    if(!empty($imdb)) {
+    if (!empty($imdb)) {
         $link .= "&imdb=" . $imdb[0] . "," . $imdb[1];
     }
-    if(!empty($continents)) {
+    if (!empty($continents)) {
         foreach ($continents as $continent) {
             $link .= "&continents[]=" . $continent;
         }
@@ -161,8 +202,8 @@ function reformatLink($query, $years, $imdb, $genres, $continents) {
 }
 
 function reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continents) {
-    $url = formatSimpleQuery($query, $start, $rows);
-    // Add filters
+    $url = formatSimpleQuery($start, $rows);
+    // Create the URL with GET parameters; Add filters
     if(!empty($genres)) {
         $url = addGenreFilter($genres, $url);
     }
@@ -175,14 +216,32 @@ function reformatQuery($query, $start, $rows, $years, $imdb, $genres, $continent
     if(!empty($continents)) {
         $url = addContinentFilter($continents, $url);
     }
-    return $url;
+
+    $postdata = http_build_query(
+        array(
+            'q' => $query
+        )
+    );
+
+    $opts = array('http' =>
+        array(
+            'method'  => 'POST',
+            'header'  => 'Content-type: application/x-www-form-urlencoded',
+            'ignore_errors' => 'true',
+            'content' => $postdata
+        )
+    );
+
+    $context  = stream_context_create($opts);
+
+    return array($url,$context);
 }
 
-function formatSimpleQuery($query,$start,$rows) {
+function formatSimpleQuery($start,$rows) {
     global $df;
     $url = "http://" . SOLRHOST . ":" . SOLRPORT . SOLRNAME . "/movies/select?";
     $options = array("df"=>$df, "hl.fl"=>$df, "hl"=> "on", "hl.snippets"=>3, "indent"=>"on",
-        "q"=>$query,"rows"=>$rows,"start"=>$start,"wt"=>"json");
+        "rows"=>$rows,"start"=>$start,"wt"=>"json");
     $url .= http_build_query($options,'','&');
     return $url;
 }
@@ -244,6 +303,16 @@ function get_icon_name($doc) {
         preg_match('/\/[A-Z]\/(.*)/', $doc['icon'], $output_array);
         return $output_array[1];
     }
+}
+
+function debug_to_console( $data ) {
+
+    if ( is_array( $data ) )
+        $output = "<script>console.log( 'Debug Objects: " . implode( ',', $data) . "' );</script>";
+    else
+        $output = "<script>console.log( 'Debug Objects: " . $data . "' );</script>";
+
+    echo $output;
 }
 ?>
 
@@ -307,13 +376,16 @@ function get_icon_name($doc) {
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a href="#">About</a>
+                        <a href="about.html">About</a>
+                    </li>
+                    <li>
+                        <a href="feelingLucky.php">Feeling Lucky</a>
                     </li>
                     <li>
                         <a href="privacypolicy.html">Privacy Policy</a>
                     </li>
                     <li>
-                        <a href="#">Contact</a>
+                        <a href="contact.html">Contact</a>
                     </li>
                 </ul>
             </div>
@@ -333,8 +405,7 @@ function get_icon_name($doc) {
                 </li>
                 <!-- Form -->
                 <form accept-charset="utf-8" action="results.php" method="get">
-                    <!--Recreate the previous query link to prepend to form filtering results-->
-                    <input type="hidden" name=<?php echo $df_letter;?> value="<?php echo $urlQuery;?>">
+
 
                     <!--Dropdown menu for film genres filter-->
                     <li class="dropdown">
@@ -439,7 +510,7 @@ function get_icon_name($doc) {
                     </li>
                     <!--End of film continent filter-->
 
-                    <li><input type="submit" class="btn btn-info btn-responsive" id="submit_button" role="button" name="submit" value="Apply magic!"/></li>
+                    <li><button type="submit" class="btn btn-info btn-responsive" id="submit_button" role="button" name="submitbtn" value="Apply Magic!">Apply magic!</button></li>
                 </form>
                 <!-- /#form-wrapper -->
             </ul>
@@ -526,21 +597,64 @@ function get_icon_name($doc) {
                                 ?>
                             </div>
 
+                            <script>
+                                $(document).ready(function(){
+                                    $('#next').click(function(){
+                                        event.preventDefault();
+                                        document.getElementById("fake_form_next").submit();
+                                    });
+                                    $('#first').click(function(){
+                                        event.preventDefault();
+                                        document.getElementById("fake_form_first").submit();
+                                    });
+                                    $('#previous').click(function(){
+                                        event.preventDefault();
+                                        document.getElementById("fake_form_previous").submit();
+                                    });
+                                    $('#last').click(function(){
+                                        event.preventDefault();
+                                        document.getElementById("fake_form_last").submit();
+                                    });
+                                    /*$('#magic').click(function(){
+                                        event.preventDefault();
+                                        document.getElementById("query").submit();
+                                        document.getElementById("filters").submit();
+                                    });*/
+                                });
 
-                            <hr>
+                            </script>
 
                             <!-- Pagination -->
                             <div class="row text-center">
                                 <div class="col-lg-12">
                                     <?php
                                     /* URL for redirection */
-                                    $url = reformatLink($urlQuery, $years, $imdb, $genres, $continents);
+                                    /*$url = reformatLink($urlQuery, $years, $imdb, $genres, $continents, 0);*/
                                     /*print_r($currentPage);*/
                                     /* Show previous pages' links */
                                     if ($currentPage > 1) { // First page doesn't have a previous page
-                                        echo " <a href='$url&currentPage=1' class='btn btn-info btn-responsive ' role='button'>First</a> "; // Link to first page
+
+                                        /* Fake Button First */
+                                        $firstPage = 1;
+                                        $first = reformatLink($urlQuery,$years, $imdb, $genres, $continents,$firstPage);
+                                        ?>
+                                        <form action="<?php echo htmlspecialchars($first);?>" method="post" id="fake_form_first" style="display: none;">
+                                            <input type="hidden" name="q" value="<?php echo $urlQuery; ?>"/>
+                                        </form>
+                                        <?php
+                                        /*echo "<form action='$first' method='post' id='fake_form_first' style='display: none;'><input type='hidden' name='q' value='$urlQuery'/></form>";*/
+                                        echo " <a id='first' href=# class='btn btn-info btn-responsive ' role='button'>First</a> "; // Link to first page
+                                        /* End of Fake Button First */
+
+                                        /* Fake Button Previous */
                                         $previousPage = $currentPage - 1; // Previous page number
-                                        echo " <a href='$url&currentPage=$previousPage' class='btn btn-info btn-responsive ' role='button'>Previous</a> "; // Link to previous page
+                                        $previous = reformatLink($urlQuery,$years, $imdb, $genres, $continents,$previousPage);
+                                        ?>
+                                        <form action="<?php echo htmlspecialchars($previous);?>" method="post" id="fake_form_previous" style="display: none;">
+                                            <input type="hidden" name="q" value="<?php echo $urlQuery; ?>"/>
+                                        </form>
+                                        <?php
+                                        echo " <a id='previous' href=# class='btn btn-info btn-responsive ' role='button'>Previous</a> "; // Link to previous page
                                         if ($currentPage == $_SESSION['totalPages'] ) {
                                             echo " <span class='btn btn-info btn-responsive  disabled' role='button'>Next</span> ";
                                             echo " <span class='btn btn-info btn-responsive  disabled' role='button'>Last</span> ";
@@ -553,15 +667,41 @@ function get_icon_name($doc) {
                                             echo " <span class='btn btn-info btn-responsive  disabled'>First</span> ";
                                             echo " <span class='btn btn-info btn-responsive  disabled'>Previous</span> ";
                                         }
+                                        ?>
+
+                                        <!-- Fake Button Next -->
+                                        <?php
                                         $nextPage = $currentPage + 1; // Next page number
-                                        echo " <a href='$url&currentPage=$nextPage' class='btn btn-info btn-responsive ' role='button'>Next</a> "; // Link to next page
-                                        echo " <a href='$url&currentPage={$_SESSION['totalPages']} ' class='btn btn-info btn-responsive ' role='button'>Last</a>"; // Link to last page
+                                        $next = reformatLink($urlQuery,$years, $imdb, $genres, $continents,$nextPage);
+                                        ?>
+                                        <form action="<?php echo htmlspecialchars($next);?>" method="post" id="fake_form_next" style="display: none;">
+                                            <input type="hidden" name="q" value="<?php echo $urlQuery; ?>"/>
+                                        </form>
+<!--                                    echo "<form action='$next' method='post' id='fake_form_next' style='display: none;'><input type='hidden' name='q' value='$urlQuery'/></form>";
+-->                                     <?php
+                                        echo " <a id='next' href=# class='btn btn-info btn-responsive ' role='button'>Next</a> "; // Link to first page
+                                        /*echo " <a href='$url&currentPage=$nextPage' class='btn btn-info btn-responsive ' role='button'>Next</a> "; // Link to next page*/
+                                        ?>
+                                        <!-- End of Fake Button Next -->
+
+                                        <!-- Fake Button Last -->
+                                        <?php
+                                        $lastPage = $_SESSION['totalPages']; // Last page number
+                                        $last = reformatLink($urlQuery,$years, $imdb, $genres, $continents,$lastPage);
+                                        ?>
+                                        <form action="<?php echo htmlspecialchars($last);?>" method="post" id="fake_form_last" style="display: none;">
+                                            <input type="hidden" name="q" value="<?php echo $urlQuery; ?>"/>
+                                        </form>
+                                        <?php
+                                        echo " <a id='last' href=# class='btn btn-info btn-responsive ' role='button'>Last</a>"; // Link to last page
+                                        /* End of Fake Button Last */
                                     }
                                     ?>
                                 </div>
                             </div>
                         <!-- /.row --> <?php
-                        } ?>
+                        }
+                        ?>
                         <hr>
                         <!-- Footer -->
                         <footer>

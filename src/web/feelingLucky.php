@@ -13,17 +13,18 @@ session_start();
     <meta name="author" content="Sofia Yfantidou">
 
     <title>Film Buddy: A Social Movie Recommender Engine using Semantics</title>
-    <link rel="shortcut icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
 
     <!-- Bootstrap Core CSS -->
-    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
-
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/index-style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Amatic+SC" rel="stylesheet">
     <!-- Custom CSS -->
     <style>
-    body {
-        padding-top: 70px;
-        /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
-    }
+        body {
+            padding-top: 70px;
+            /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+        }
     </style>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -54,13 +55,16 @@ session_start();
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a href="#">About</a>
+                        <a href="about.html">About</a>
                     </li>
                     <li>
-                        <a href="../privacypolicy.html">Privacy Policy</a>
+                        <a href="feelingLucky.php">Feeling Lucky</a>
                     </li>
                     <li>
-                        <a href="#">Contact</a>
+                        <a href="privacypolicy.html">Privacy Policy</a>
+                    </li>
+                    <li>
+                        <a href="contact.html">Contact</a>
                     </li>
                 </ul>
             </div>
@@ -73,13 +77,15 @@ session_start();
     <div class="container">
         <div class="row">
             <div class="col-lg-12 text-center">
-                <h1>Film Buddy</h1>
-                <p class="lead">A Social Movie Recommender Engine using Semantics</p>
-                <form accept-charset="utf-8" action="../results.php" method="get">
-                    <label for="q">Search:</label>
+                <!--<h1>Film Buddy</h1>-->
+                <img src="images/logo_cropped.png" class="img-responsive" style="max-height: 90px; margin-top: 30px; margin-left: auto; margin-right: auto;" alt="Film Buddy Logo">
+                <p class="lead subHeader">A Social Movie Recommender Engine using Semantics</p>
+                <form accept-charset="utf-8" action="results.php" method="post">
+                    <h2 class="header">Wanna try your luck? Search for yourself!</h2>
+                    <label for="q" class="subHeader" style="font-size: 1.5em">Search:</label>
                     <input id="q" name="q" type="text" placeholder="Enter your search terms" value="<?php $query = "";
                     echo htmlspecialchars($query, ENT_QUOTES, 'utf-8'); ?>"/>
-                    <input type="submit" class="btn btn-default btn-md" role="button"/>
+                    <input type="submit" name="submitbtn" class="btn btn-default btn-md" role="button"/>
                 </form>
             </div>
         </div>
@@ -88,11 +94,23 @@ session_start();
     </div>
     <!-- /.container -->
 
+    <hr>
+
+    <!-- Footer -->
+    <footer>
+        <div class="row">
+            <div class="col-lg-12">
+                <p>Copyright &copy; Film Buddy 2016</p>
+            </div>
+        </div>
+        <!-- /.row -->
+    </footer>
+
     <!-- jQuery Version 1.11.1 -->
-    <script src="../assets/js/jquery.js"></script>
+    <script src="assets/js/jquery.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="../assets/js/bootstrap.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
 
 </body>
 

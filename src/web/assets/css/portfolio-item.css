@@ -27,6 +27,7 @@ li > span::before {
 
 footer {
     margin: 50px 0;
+    text-align: center;
 }
 
 #details {

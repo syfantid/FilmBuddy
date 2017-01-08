@@ -152,7 +152,10 @@ function getCategoryURL($category) {
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a href="#">About</a>
+                        <a href="about.html">About</a>
+                    </li>
+                    <li>
+                        <a href="feelingLucky.php">Feeling Lucky</a>
                     </li>
                     <li>
                         <a href="privacypolicy.html">Privacy Policy</a>

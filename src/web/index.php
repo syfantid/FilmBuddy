@@ -67,13 +67,13 @@ function Redirect($url, $permanent = false)
             redirect();
         } else if (response.status === 'not_authorized') {
             // The person is logged into Facebook, but not your app.
-            document.getElementById('status').innerHTML = 'Please log ' +
-                'into this app.';
+            /*document.getElementById('status').innerHTML = 'Please log ' +
+                'into this app.';*/
         } else {
             // The person is not logged into Facebook, so we're not sure if
             // they are logged into this app or not.
-            document.getElementById('status').innerHTML = 'Please log ' +
-                'into Facebook.';
+            /*document.getElementById('status').innerHTML = 'Please log ' +
+                'into Facebook.';*/
         }
     }
 
@@ -159,13 +159,16 @@ function Redirect($url, $permanent = false)
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
                 <li>
-                    <a href="#">About</a>
+                    <a href="about.html">About</a>
+                </li>
+                <li>
+                    <a href="feelingLucky.php">Feeling Lucky</a>
                 </li>
                 <li>
                     <a href="privacypolicy.html">Privacy Policy</a>
                 </li>
                 <li>
-                    <a href="#">Contact</a>
+                    <a href="contact.html">Contact</a>
                 </li>
             </ul>
         </div>
@@ -178,37 +181,38 @@ function Redirect($url, $permanent = false)
 <div class="container">
     <div class="row">
         <div class="col-lg-12 text-center">
-            <h1>Film Buddy</h1>
-            <p class="lead">A Social Movie Recommender Engine using Semantics</p>
+            <img src="images/logo_cropped.png" class="img-responsive" style="max-height: 90px; margin-top: 30px;margin-left: auto; margin-right: auto;" alt="Film Buddy Logo">
+            <p class="lead subHeader">A Social Movie Recommender Engine using Semantics</p>
             <!--<div class="jumbotron vertical-center">-->
                 <div class="container text-center">
-                    <form accept-charset="utf-8" action="results.php" method="get">
-                        <label for="q">Search:</label>
-                        <input id="q" name="q" type="text" placeholder="Enter your search terms" value="<?php $query = "";
-                        echo htmlspecialchars($query, ENT_QUOTES, 'utf-8'); ?>"/>
-                        <input type="submit" class="btn btn-default btn-md" role="button"/>
-                    </form>
-
-                    <!-- Not customized button -->
-                    <!--<div id="login" class="fb-login-button" data-max-rows="1" data-size="large" data-show-faces="true"
-                         data-auto-logout-link="false" scope="public_profile,email,user_likes,user_posts" onlogin="checkLoginState();"></div>
-                    <div id="status"></div>-->
-
-                    <fb:login-button id="login" size="large"
-                                     data-show-faces="true"
-                                     data-auto-logout-link="false" scope="public_profile,email,user_likes,user_posts"
-                                     onlogin="checkLoginState();">
-                                     Continue with Facebook
-                    </fb:login-button>
+                    <h4 class="header">Film Buddy discovers your new favorite movies!</h4>
+                    <h5 class="subHeader">Let us get to know you better by continuing with Facebook</h5>
+                    <div id="loginDiv">
+                        <fb:login-button id="login" size="large"
+                                         data-show-faces="true"
+                                         data-auto-logout-link="false" scope="public_profile,email,user_likes,user_posts"
+                                         onlogin="checkLoginState();">
+                                         Continue with Facebook
+                        </fb:login-button>
+                    </div>
                     <div id="status"></div>
-
-                    <div id="like" class="fb-like" data-share="true" data-width="450" data-show-faces="true"></div>
-        </div>
+                </div>
     <!--</div>-->
     <!-- /.row -->
 
 </div>
 <!-- /.container -->
+
+        <hr>
+        <!-- Footer -->
+        <footer>
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>Copyright &copy; Film Buddy 2016</p>
+                </div>
+            </div>
+            <!-- /.row -->
+        </footer>
 
 <!-- jQuery Version 1.11.1 -->
 <script src="assets/js/jquery.js"></script>

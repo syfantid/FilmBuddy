@@ -11,14 +11,16 @@ body {
 
 .portfolio-item {
     margin-bottom: 50px;
+    /*min-height: 250px;*/
 }
 
 #height-adjust {
-    min-height: 350px; !important;
+    min-height: 380px; !important;
 }
 
 footer {
     margin: 50px 0;
+    text-align: center;
 }
 
 .navbar {
@@ -42,7 +44,7 @@ h3 a {
 }
 
 #title {
-    line-height: 0.5;
+    line-height: 0.8;
 }
 
 #genre {

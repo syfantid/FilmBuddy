@@ -9,11 +9,30 @@ body {
 
 #like {
     padding-top: 40px;
+    margin: 0 auto;
+    width: 350px;
 }
 
 /* Change the status font, color etc. */
 #status {
-    color: #55a6c2;
+    color: #5bc0de;
+}
+
+#submitButton {
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.first-box{padding:10px;background: #747474; color: white;}
+.second-box{padding:10px; background: #5bc0de;color: white;}
+.third-box{padding:10px;background: #487f9a;color: white;}
+.fourth-box{padding:10px;background: #515151;color: white;}
+.noDec {
+    color: inherit; /* blue colors for links too */
+    text-decoration: inherit; /* no underline */
+}
+a:hover {
+    color: inherit;
 }
 /*
 !* Vertical Center Alignment *!
@@ -43,4 +62,30 @@ if it's not present, don't show loader */
     height: 100%;
     z-index: 9999;
     background: url(images/Preloader_2.gif) center no-repeat #fff;
+    text-align: center;
+    font-weight: bold;
+    font-size: 24px;
+    color: #5bc0de;
+    font-family: 'Amatic SC', "Courier New";
+}
+.header {
+    text-align: center;
+    font-weight: bold;
+    color: #5bc0de;
+    font-family: 'Amatic SC', "Courier New";
+}
+.subHeader {
+    text-align: center;
+    font-weight: bold;
+    color: #515151;
+    font-family: 'Amatic SC', "Courier New";
+}
+footer {
+    margin: 50px 0;
+    text-align: center;
+}
+
+#loginDiv {
+    margin-top: 20px;
+    margin-bottom: 50px;
 }
