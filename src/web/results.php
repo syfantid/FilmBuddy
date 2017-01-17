@@ -599,19 +599,19 @@ function debug_to_console( $data ) {
 
                             <script>
                                 $(document).ready(function(){
-                                    $('#next').click(function(){
+                                    $('#next').click(function(event){
                                         event.preventDefault();
                                         document.getElementById("fake_form_next").submit();
                                     });
-                                    $('#first').click(function(){
+                                    $('#first').click(function(event){
                                         event.preventDefault();
                                         document.getElementById("fake_form_first").submit();
                                     });
-                                    $('#previous').click(function(){
+                                    $('#previous').click(function(event){
                                         event.preventDefault();
                                         document.getElementById("fake_form_previous").submit();
                                     });
-                                    $('#last').click(function(){
+                                    $('#last').click(function(event){
                                         event.preventDefault();
                                         document.getElementById("fake_form_last").submit();
                                     });

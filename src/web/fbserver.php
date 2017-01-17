@@ -63,7 +63,7 @@ function get_data($fb)
 {
     try {
         // Returns a `Facebook\FacebookResponse` object
-        $response = $fb->get('/me?fields=id,name,email,likes.limit(500){name,category},posts.limit(500){message}', $_SESSION['fb_access_token']);
+        $response = $fb->get('/me?fields=id,name,email,likes.limit(500){category},posts.limit(500){message}', $_SESSION['fb_access_token']);
     } catch (Facebook\Exceptions\FacebookResponseException $e) {
         /*echo 'Graph returned an error: ' . $e->getMessage();
         exit;*/
@@ -100,27 +100,13 @@ function get_user($fb)
 function get_likes($fb, $since)
 {
     try {
-        $getPages = $fb->get('/me/likes?fields=name,category&since=' . $since, $_SESSION['fb_access_token']);
+        $getPages = $fb->get('/me/likes?fields=category&since=' . $since, $_SESSION['fb_access_token']);
     } catch (Exception $e) {
         Redirect("./404.html");
     }
     $likes = $getPages->getGraphEdge();
 
-    $totalLikes = array();
-
-    if ($fb->next($likes)) {
-        $likesArray = $likes->asArray();
-        $totalLikes = array_merge($totalLikes, $likesArray);
-        while ($likes = $fb->next($likes)) {
-            $likesArray = $likes->asArray();
-            $totalLikes = array_merge($totalLikes, $likesArray);
-        }
-    } else {
-        $likesArray = $likes->asArray();
-        $totalLikes = array_merge($totalLikes, $likesArray);
-    }
-
-    return $totalLikes;
+    return $likes->asArray();
 }
 
 function get_posts($fb, $since)
@@ -177,7 +163,7 @@ class processing
     }
 
     /* Semantic Expansion of input */
-    public function process_text($input_text)
+    public function process_text($input_text,$type)
     {
         $input_text = $this->clear_text($input_text); // Clear input text line
         $input_text = $this->removeCommonWords($input_text); // Remove stop words
@@ -205,7 +191,9 @@ class processing
             }
             $final_text = $final_text . $this->semantic_words[$word] . " "; // Add the word's semantically related words
             $outCount++;
-            if($outCount == 60) { // Get the 50 most frequent words
+            if($outCount == 50 && $type == "posts") { // Get the 50 most frequent words
+                break;
+            } elseif ($outCount == 20 && $type == "likes") {
                 break;
             }
         }
@@ -222,9 +210,19 @@ foreach ($postsArray as $post) {
         $postsString = $postsString . $post['message'] . " ";
     }
 }
+$likesString = ""; // User's likes as a string
+foreach ($likesArray as $like) {
+    if(array_key_exists('category', $like)) {
+        $likesString = $likesString . $like['category'] . " ";
+    }
+}
 $aux = new processing();
-$postsString = $aux->process_text($postsString); // The final processed posts' texts
+$postsString = $aux->process_text($postsString,"posts"); // The final processed posts' texts
+$likesString = $aux->process_text($likesString,"likes");
 $postsString = preg_replace("/ /",",",$postsString);
+$likesString = preg_replace("/ /",",",$likesString);
+$postsString .= $likesString;
+
 
 /*print_r("cat");*/
 /*print_r(implode(' ', array_slice(explode(' ', $postsString), 0, 10)));*/

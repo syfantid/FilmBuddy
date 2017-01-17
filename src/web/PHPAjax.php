@@ -36,7 +36,9 @@ function Redirect($url, $permanent = false)
 
     <script type="text/javascript">
         /* Display the loading gif */
-        document.write('<div class="se-pre-con" id="loading"><br><br><br><br><br>This might take a few minutes... Working our magic! </div>');
+        document.write('<div class="se-pre-con" id="loading"><br><br><br><br><br>This might take a few minutes... ' +
+            'Working our magic!<br>Film Buddy is a tool that gives you personalized movie recommendations. <br>' +
+            'The recommendations are based on the pages you\'ve liked and the things you\'ve posted on Facebook.</div>');
 
 
         //Ajax Function
@@ -94,6 +96,7 @@ function Redirect($url, $permanent = false)
                     var query = http.responseText; // The user's interests as a string
 
                     $('#query').tagsinput('add', query);
+                    /*document.getElementById('content').innerHTML = query;*/
 
                 }
             }
@@ -202,7 +205,7 @@ function Redirect($url, $permanent = false)
             <p class="lead subHeader">A Social Movie Recommender Engine using Semantics</p>
 
             <form method="post" action="./results.php">
-                <h2 class="header">These are the things we think you like! Feel free to disagree!</h2>
+                <h2 class="header">These are the things we think you like based on your Facebook posts and likes! Feel free to disagree!</h2>
                 <h4 class="subHeader">Press the button on the bottom of this page to get our recommendations!</h4>
                 <input name="q" id="query" data-role="tagsinput" value=""/>
                 <br>
