@@ -56,7 +56,7 @@ if (! isset($accessToken)) {
 var_dump($accessToken->getValue());*/
 
 $_SESSION['fb_access_token'] = (string) $accessToken;
-$since = 2012; // todo Pass the $since parameter
+$since = 2014; // todo Pass the $since parameter
 
 
 function get_data($fb)
@@ -191,9 +191,9 @@ class processing
             }
             $final_text = $final_text . $this->semantic_words[$word] . " "; // Add the word's semantically related words
             $outCount++;
-            if($outCount == 50 && $type == "posts") { // Get the 50 most frequent words
+            if($outCount == 25 && $type == "posts") { // Get the 35 most frequent words out of posts
                 break;
-            } elseif ($outCount == 20 && $type == "likes") {
+            } elseif ($outCount == 10 && $type == "likes") { // Get the 15 most frequent page categories out of likes
                 break;
             }
         }

@@ -330,15 +330,17 @@ function debug_to_console( $data ) {
     <title>Film Buddy: A Social Movie Recommender Engine using Semantics</title>
     <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
 
+
     <!-- Custom CSS -->
     <link href="assets/css/3-col-portfolio.css" rel="stylesheet">
     <link href="assets/css/simple-sidebar.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
 
     <!-- Bootstrap Slider CSS-->
     <link href="assets/css/bootstrap-slider.min.css" rel="stylesheet">
-
     <!-- Bootstrap Core CSS -->
-    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
+
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -380,6 +382,12 @@ function debug_to_console( $data ) {
                     </li>
                     <li>
                         <a href="feelingLucky.php">Feeling Lucky</a>
+                    </li>
+                    <li>
+                        <a target="_blank" href="https://goo.gl/forms/OxbdOOS1ZaXlEhXg1">Feedback</a>
+                    </li>
+                    <li>
+                        <a href="evaluation.html">Evaluation</a>
                     </li>
                     <li>
                         <a href="privacypolicy.html">Privacy Policy</a>
@@ -545,7 +553,7 @@ function debug_to_console( $data ) {
                                         $highlights = array_slice($highlights, 0, 5); // return the first five elements
                                     }
                                     ?>
-                                    <div id="height-adjust" class="browse-movie-wrap col-xs-12 col-sm-4 col-md-3 col-lg-2 portfolio-item hover10">
+                                    <div id="height-adjust" class="browse-movie-wrap col-xs-12 col-sm-6 col-md-4 col-lg-2 portfolio-item hover10">
                                         <!-- todo Change URL for production -->
                                         <?php $movieURL = "http://snf-730593.vm.okeanos.grnet.gr/film_buddy/src/web/movie.php?id=" . $doc['id'];?>
 

@@ -6,6 +6,7 @@
 
 body {
     padding-top: 70px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+    font-family: 'Raleway', sans-serif; !important;
 }
 
 .portfolio-item {
@@ -32,6 +33,7 @@ footer {
 
 #details {
     list-style-type: none;
+    line-height: 2em;
 }
 
 #categoryURL {

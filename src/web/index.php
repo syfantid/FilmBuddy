@@ -41,7 +41,7 @@ function Redirect($url, $permanent = false)
     <!-- Custom CSS -->
     <link href="assets/css/index-style.css" rel="stylesheet">
     <!-- Bootstrap Core CSS -->
-    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -165,6 +165,12 @@ function Redirect($url, $permanent = false)
                     <a href="feelingLucky.php">Feeling Lucky</a>
                 </li>
                 <li>
+                    <a target="_blank" href="https://goo.gl/forms/OxbdOOS1ZaXlEhXg1">Feedback</a>
+                </li>
+                <li>
+                    <a href="evaluation.html">Evaluation</a>
+                </li>
+                <li>
                     <a href="privacypolicy.html">Privacy Policy</a>
                 </li>
                 <li>
@@ -189,7 +195,7 @@ function Redirect($url, $permanent = false)
                     <h5 class="subHeader">Let us get to know you better by continuing with Facebook</h5>
                     <div id="loginDiv">
                         <fb:login-button id="login" size="large"
-                                         data-show-faces="true"
+                                         data-show-faces="false"
                                          data-auto-logout-link="false" scope="public_profile,email,user_likes,user_posts"
                                          onlogin="checkLoginState();">
                                          Continue with Facebook
@@ -204,15 +210,6 @@ function Redirect($url, $permanent = false)
 <!-- /.container -->
 
         <hr>
-        <!-- Footer -->
-        <footer>
-            <div class="row">
-                <div class="col-lg-12">
-                    <p>Copyright &copy; Film Buddy 2016</p>
-                </div>
-            </div>
-            <!-- /.row -->
-        </footer>
 
 <!-- jQuery Version 1.11.1 -->
 <script src="assets/js/jquery.js"></script>

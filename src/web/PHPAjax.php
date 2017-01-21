@@ -26,7 +26,7 @@ function Redirect($url, $permanent = false)
 <html lang="en">
 <head>
     <link href="https://fonts.googleapis.com/css?family=Amatic+SC" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
 
     <!-- jQuery Version 3.1.1 -->
     <script src="assets/js/jquery-3.1.1.js"></script>
@@ -36,9 +36,11 @@ function Redirect($url, $permanent = false)
 
     <script type="text/javascript">
         /* Display the loading gif */
-        document.write('<div class="se-pre-con" id="loading"><br><br><br><br><br>This might take a few minutes... ' +
-            'Working our magic!<br>Film Buddy is a tool that gives you personalized movie recommendations. <br>' +
-            'The recommendations are based on the pages you\'ve liked and the things you\'ve posted on Facebook.</div>');
+        document.write('<div class="se-pre-con" id="loading"><br><br><br><br><br>' +
+            'This might take a minute... Working our magic!<br><span class="subHeader2">' +
+            'Film Buddy is a tool that gives you personalized ' +
+            'movie recommendations. <br>The recommendations are based on the pages you\'ve liked and the things you\'ve ' +
+            'posted on Facebook.</span></div>');
 
 
         //Ajax Function
@@ -147,7 +149,7 @@ function Redirect($url, $permanent = false)
     <!-- Custom CSS -->
     <link href="assets/css/index-style.css" rel="stylesheet">
     <!-- Bootstrap Core CSS -->
-    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
     <!-- Tag Cloud Integration -->
     <link rel="stylesheet" href="assets/css/bootstrap-tagsinput.css">
     <script src="assets/js/bootstrap-tagsinput.js"></script>
@@ -185,6 +187,12 @@ function Redirect($url, $permanent = false)
                     <a href="feelingLucky.php">Feeling Lucky</a>
                 </li>
                 <li>
+                    <a target="_blank" href="https://goo.gl/forms/OxbdOOS1ZaXlEhXg1">Feedback</a>
+                </li>
+                <li>
+                    <a href="evaluation.html">Evaluation</a>
+                </li>
+                <li>
                     <a href="privacypolicy.html">Privacy Policy</a>
                 </li>
                 <li>
@@ -205,7 +213,7 @@ function Redirect($url, $permanent = false)
             <p class="lead subHeader">A Social Movie Recommender Engine using Semantics</p>
 
             <form method="post" action="./results.php">
-                <h2 class="header">These are the things we think you like based on your Facebook posts and likes! Feel free to disagree!</h2>
+                <h2 class="header">These are the things we think you like! Feel free to disagree!</h2>
                 <h4 class="subHeader">Press the button on the bottom of this page to get our recommendations!</h4>
                 <input name="q" id="query" data-role="tagsinput" value=""/>
                 <br>

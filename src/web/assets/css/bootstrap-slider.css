@@ -30,6 +30,7 @@
   display: inline-block;
   vertical-align: middle;
   position: relative;
+  font-family: 'Raleway', sans-serif;
 }
 .slider.slider-horizontal {
   width: 210px;

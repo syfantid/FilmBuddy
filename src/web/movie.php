@@ -114,9 +114,10 @@ function getCategoryURL($category) {
 
     <title><?php echo $movie['title'];?> Page</title>
     <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
 
     <!-- Bootstrap Core CSS -->
-    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="assets/css/portfolio-item.css" rel="stylesheet">
 
@@ -156,6 +157,12 @@ function getCategoryURL($category) {
                     </li>
                     <li>
                         <a href="feelingLucky.php">Feeling Lucky</a>
+                    </li>
+                    <li>
+                        <a target="_blank" href="https://goo.gl/forms/OxbdOOS1ZaXlEhXg1">Feedback</a>
+                    </li>
+                    <li>
+                        <a href="evaluation.html">Evaluation</a>
                     </li>
                     <li>
                         <a href="privacypolicy.html">Privacy Policy</a>

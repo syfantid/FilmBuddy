@@ -1,5 +1,6 @@
 body {
     padding-top: 70px;
+    font-family: 'Raleway', sans-serif;
     /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
 }
 
@@ -66,7 +67,7 @@ if it's not present, don't show loader */
     font-weight: bold;
     font-size: 24px;
     color: #5bc0de;
-    font-family: 'Amatic SC', "Courier New";
+    font-family: 'Raleway', sans-serif;
 }
 .header {
     text-align: center;
@@ -79,6 +80,17 @@ if it's not present, don't show loader */
     font-weight: bold;
     color: #515151;
     font-family: 'Amatic SC', "Courier New";
+}
+
+.steps li {
+    padding-bottom: 15px;
+}
+
+.subHeader2 {
+    text-align: center;
+    font-weight: bold;
+    color: #515151;
+    font-family: 'Raleway', sans-serif;
 }
 footer {
     margin: 50px 0;
