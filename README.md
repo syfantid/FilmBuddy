@@ -6,7 +6,7 @@ Project for my thesis; Social Recommender System
 
 ### Dependencies
 1. org.mongodb:mongodb-driver:3.2.22 // Connecting to a MongoDB Database with Java
-2. com.omertron:API-OMDB:1.02 // Java library for OMDb API 
+2. com.omertron:API-OMDB:1.03 // Java library for OMDb API 
 3. com.google.code.gson:gson:2.6.22 // GSON format handling
 4. edu.stanford.nlp:stanford-corenlp:3.6.02 // NLP functionality (Lemmatization)
 5. org.slf4j:slf4j-nop:1.6.22
