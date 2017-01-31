@@ -9,11 +9,11 @@ import java.sql.SQLException;
 public class Collector {
     public static void main(String[] args) {
         // Collect all films from Wikipedia and insert them into a MySQL Database
-        try {
+        /*try {
             MovieCollectorSQL.main(null);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
-        }
+        }*/
 
         // Collect all films' metadata from OMDb and insert them into a MongoDB
         try {

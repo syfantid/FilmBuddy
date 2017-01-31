@@ -175,7 +175,7 @@ class processing
         $final_text = "";
         foreach ($words as $word => $frequency) {
             $final_text = $final_text . $word . " "; // Add the word itself
-            if (!array_key_exists($word, $this->semantic_words)) {
+            /*if (!array_key_exists($word, $this->semantic_words)) {
                 $json = file_get_contents('http://api.datamuse.com/words?rd=' . $word); // Get the JSON response
                 $array = json_decode($json, true); // Convert JSON to associative array
                 $related_words = "";
@@ -189,11 +189,11 @@ class processing
                 }
                 $this->semantic_words[$word] = $related_words; // Cache the semantic relationship
             }
-            $final_text = $final_text . $this->semantic_words[$word] . " "; // Add the word's semantically related words
+            $final_text = $final_text . $this->semantic_words[$word] . " "; // Add the word's semantically related words*/
             $outCount++;
-            if($outCount == 25 && $type == "posts") { // Get the 35 most frequent words out of posts
+            if($outCount == 90 && $type == "posts") { // Get the 35 most frequent words out of posts
                 break;
-            } elseif ($outCount == 10 && $type == "likes") { // Get the 15 most frequent page categories out of likes
+            } elseif ($outCount == 30 && $type == "likes") { // Get the 15 most frequent page categories out of likes
                 break;
             }
         }

@@ -63,7 +63,7 @@ public class MovieStoragerMongo {
     private String findMovie(String imdbID) throws OMDBException {
         OmdbApi omdb = new OmdbApi();
         Gson gson = new Gson();
-        OmdbVideoFull result = omdb.getInfo(new OmdbBuilder().setImdbId(imdbID).setPlotLong().setTomatoesOn().build());
+        OmdbVideoFull result = omdb.getInfo(new OmdbBuilder().setImdbId(imdbID).setPlotFull().setTomatoesOn().build());
         return gson.toJson(result);
     }
 
@@ -99,7 +99,7 @@ public class MovieStoragerMongo {
             String imdbid = rs.getString("imdb_url").replace("http://www.imdb.com/title/","")
                     .replace("tttt","tt");
             System.out.println("ID: " + id + " IMDb ID: " + imdbid);
-            if(!imdbid.isEmpty() && Integer.parseInt(id)>33782) {
+            if(!imdbid.isEmpty() && Integer.parseInt(id)>-1) {
                 try {
                     mongoConnector.addMovie(id, imdbid); // Store movie's metadata to MongoDB
                 } catch (OMDBException e) { // In case the movie cannot be found in OMDb

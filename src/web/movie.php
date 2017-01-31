@@ -159,7 +159,7 @@ function getCategoryURL($category) {
                         <a href="feelingLucky.php">Feeling Lucky</a>
                     </li>
                     <li>
-                        <a target="_blank" href="https://goo.gl/forms/OxbdOOS1ZaXlEhXg1">Feedback</a>
+                        <a target="_blank" href="https://goo.gl/forms/WkjXH6H3l6klyYWI3">Feedback</a>
                     </li>
                     <li>
                         <a href="evaluation.html">Evaluation</a>
