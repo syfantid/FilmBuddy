@@ -228,7 +228,7 @@ function Redirect($url, $permanent = false)
                     <h4 class="header">Film Buddy discovers your new favorite movies!</h4>
                     <h5 class="subHeader">Let us get to know you better by continuing with Facebook</h5>
                     <div id="loginDiv">
-                        <fb:login-button id="login" size="large"
+                        <fb:login-button id="login" size="xlarge"
                                          data-show-faces="false"
                                          data-auto-logout-link="false" scope="public_profile,email,user_likes,user_posts"
                                          onlogin="checkLoginState();">
