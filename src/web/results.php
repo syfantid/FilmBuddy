@@ -12,7 +12,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 <?php
 
-set_include_path($_SERVER["DOCUMENT_ROOT"] . "/film_buddy/src/includes/");
+set_include_path("/home/filmbuddy/data/webapp/includes/");
 require_once('constants.php');
 require_once('Connectify.php');
 
@@ -52,6 +52,7 @@ if($category) {
     $df_letter = "c";
     $query = $category;
 }
+$_SESSION['df_letter'] = $df_letter;
 /* Keep original URL*/
 $urlQuery = $query;
 $_SESSION['urlQuery'] = $urlQuery;
@@ -182,6 +183,7 @@ function reformatLink($query, $years, $imdb, $genres, $continents, $pageNumber) 
     } else { // We need to post the query
         $link = $_SERVER['PHP_SELF'] . "?currentPage=" . $pageNumber;
     }
+    /*print_r($link);*/
     if (!empty($genres)) {
         foreach ($genres as $genre) {
             $link .= "&genre[]=" . $genre;
@@ -555,7 +557,7 @@ function debug_to_console( $data ) {
                                     ?>
                                     <div id="height-adjust" class="browse-movie-wrap col-xs-12 col-sm-6 col-md-4 col-lg-2 portfolio-item hover10">
                                         <!-- todo Change URL for production -->
-                                        <?php $movieURL = "http://snf-730593.vm.okeanos.grnet.gr/film_buddy/src/web/movie.php?id=" . $doc['id'];?>
+                                        <?php $movieURL = "http://filmbuddy.csd.auth.gr/movie.php?id=" . $doc['id'];?>
 
                                             <figure class="exact">
                                                 <a href="<?php echo $movieURL;?>">

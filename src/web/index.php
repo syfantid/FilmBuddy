@@ -6,7 +6,7 @@
  * Time: 8:08 μμ
  * Handles the Facebook login client-side
  */
-set_include_path($_SERVER["DOCUMENT_ROOT"] . "/film_buddy/src/includes/");
+set_include_path("/home/filmbuddy/data/webapp/includes");
 require_once('constants.php');
 session_start();
 

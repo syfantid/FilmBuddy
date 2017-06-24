@@ -12,7 +12,7 @@ function Redirect($url, $permanent = false)
     exit();
 }
 
-set_include_path($_SERVER["DOCUMENT_ROOT"] . "/film_buddy/src/includes/");
+set_include_path("/home/filmbuddy/data/webapp/includes/");
 require_once('constants.php');
 require_once('Connectify.php');
 
@@ -95,7 +95,7 @@ function arrayToString($array) {
 }
 
 function getCategoryURL($category) {
-    $url = "http://snf-730593.vm.okeanos.grnet.gr/film_buddy/src/web/results.php?c=" . $category;
+    $url = "results.php?c=" . $category;
     return $url;
 }
 

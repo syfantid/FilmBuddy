@@ -10,7 +10,7 @@
 if(!session_id()) {
     session_start();
 }
-set_include_path($_SERVER["DOCUMENT_ROOT"] . "/film_buddy/src/includes/");
+set_include_path("/home/filmbuddy/data/webapp/includes/");
 require_once('vendor/autoload.php');
 require_once('constants.php');
 
